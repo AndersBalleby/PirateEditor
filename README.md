@@ -30,10 +30,14 @@ cd PirateEditor
 ```
 
 ### 2. Byg med bash
+```code
 ./build.sh 
+```
 
 ### 3. Kør editoren
+```code
 ./PirateEditor
+```
 
 ## 📁 Projektstruktur
 ```text
