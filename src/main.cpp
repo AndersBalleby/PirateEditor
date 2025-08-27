@@ -16,49 +16,35 @@
 #include <cmath>
 #include <cstdio>
 
-#include "core/sdl_setup.hpp"
+#include "core/SDLHandler.hpp"
 #include "editor/editor.hpp"
 #include "editor/ui.hpp"
 
 int main(void) {
-  SDLState state = initDrivers();
-  if(state.window == NULL || state.renderer == NULL) {
-    return 1;
-  }
-   
+  SDLHandler sdl; 
   // Skal editoren køre?
   const bool editorRun = true;
-  Editor editor = Editor(state.renderer);
-  UI ui = UI(state.renderer, state.tRenderer.get());
+  Editor editor = Editor(sdl.getRenderer());
+  UI ui = UI(sdl.getRenderer(), sdl.getTextRenderer());
+  
+  while (sdl.isRunning()) {
+    sdl.tickDeltaTime();
 
-  // Deltatime
-  uint64_t prevCounter = SDL_GetPerformanceCounter();
-  uint64_t freq = SDL_GetPerformanceFrequency();
-  while (state.running) {
-    uint64_t nowCounter = SDL_GetPerformanceCounter();
-    state.deltaTime = (double)(nowCounter - prevCounter) / (double) freq;
-    prevCounter = nowCounter;   
+    // SDL Events (Input)
+    sdl.handleEvents();
     
-    // update
-    handleSDLEvents(state);
-    
-    SDL_SetRenderDrawColor(state.renderer, 20, 10, 30, 255);
-    SDL_RenderClear(state.renderer);
+    // Start rendering
+    SDL_SetRenderDrawColor(sdl.getRenderer(), 20, 10, 30, 255);
+    SDL_RenderClear(sdl.getRenderer());
 
     // Editor
-    if(editorRun) {
-      editor.run(state.renderer, ui, state.deltaTime);
+    if (editorRun) {
+      editor.run(sdl.getRenderer(), ui, sdl.getDeltaTime());
     }
-    
-    SDL_RenderPresent(state.renderer);
-    
+
+    // Present to screen
+    SDL_RenderPresent(sdl.getRenderer());
   }
-  
-  SDL_DestroyRenderer(state.renderer);
-  SDL_DestroyWindow(state.window);
-  SDL_Quit();
 
   return 0;
 }
-
-
