@@ -16,7 +16,6 @@
 #include <cmath>
 #include <cstdio>
 
-#include "core/TextRenderer.hpp"
 #include "core/sdl_setup.hpp"
 #include "editor/editor.hpp"
 #include "editor/ui.hpp"
@@ -30,26 +29,15 @@ int main(void) {
   // Skal editoren køre?
   const bool editorRun = true;
   Editor editor = Editor(state.renderer);
-  UI ui = UI();
-  
-  // FPS Tekst
-  char buffer[128];
-  std::snprintf(buffer, sizeof(buffer), "FPS: 0");
-  SDL_Color color = { 255, 255, 255, SDL_ALPHA_OPAQUE };
-  Text fps_text(state.renderer, state.tRenderer->getFont(), buffer, 1.0f, color);
-  
-  // FPS counter
+  UI ui = UI(state.renderer, state.tRenderer.get());
+
+  // Deltatime
   uint64_t prevCounter = SDL_GetPerformanceCounter();
   uint64_t freq = SDL_GetPerformanceFrequency();
-  double fpsDeltaTimer = 0.0;
-  int fps = 0;
-
   while (state.running) {
     uint64_t nowCounter = SDL_GetPerformanceCounter();
     state.deltaTime = (double)(nowCounter - prevCounter) / (double) freq;
-    prevCounter = nowCounter;
-    
-    fpsDeltaTimer += state.deltaTime;
+    prevCounter = nowCounter;   
     
     // update
     handleSDLEvents(state);
@@ -61,16 +49,7 @@ int main(void) {
     if(editorRun) {
       editor.run(state.renderer, ui, state.deltaTime);
     }
-
-    if(fpsDeltaTimer >= 1.0) {
-      fps = (state.deltaTime > 0.0) ? (int)(1.0 / state.deltaTime) : 0;
-      std::snprintf(buffer, sizeof(buffer), "FPS: %d", fps);
-      fps_text.updateMessage(state.renderer, state.tRenderer->getFont(), buffer, color);
-      fpsDeltaTimer = 0.0;
-    }
-
-    state.tRenderer->displayText(fps_text, 1024-125, 10);
-
+    
     SDL_RenderPresent(state.renderer);
     
   }

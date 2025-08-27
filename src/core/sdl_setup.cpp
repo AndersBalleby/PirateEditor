@@ -28,7 +28,7 @@ SDLState initDrivers() {
       
   int winWidth = 1280;
   int winHeight = 780;
-  SDL_Window *win = SDL_CreateWindow("Game Engine", winWidth, winHeight,
+  SDL_Window *win = SDL_CreateWindow("Game Editor", winWidth, winHeight,
                                      SDL_WINDOW_RESIZABLE);
   if (win == NULL) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fejl: Window Creation",

@@ -4,29 +4,45 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
-struct Text {
-  SDL_Texture *texture;
+class Text {
+private:
+  SDL_Texture *texture = nullptr;
   std::string message;
   SDL_Color color;
   float scale;
-
-  Text(SDL_Renderer *renderer, TTF_Font *font, const std::string& message, const float scale, const SDL_Color color);
+private:
+  void createTexture(SDL_Renderer *renderer, TTF_Font *font, const std::string &message, SDL_Color color);
+public:
+  Text(SDL_Renderer *renderer, TTF_Font *font, const std::string &message, float scale, SDL_Color color);
   ~Text();
+  
+  // Ingen kopier
+  Text(const Text&) = delete;
+  Text &operator=(const Text&) = delete;
 
-  void updateMessage(SDL_Renderer *renderer, TTF_Font* font, const std::string &message, SDL_Color);
+  // Flytbar
+  Text(Text &&other) noexcept;
+  Text &operator=(Text &&other) noexcept;
+
+
+  void updateMessage(SDL_Renderer *renderer, TTF_Font *font, const std::string &newMessage, SDL_Color newColor);
+  SDL_Texture *getTexture() const { return texture; }
+  float getScale() const { return scale; }
+  const std::string &getMessage() const { return message; }
+  SDL_Color getColor() const { return color; }
 };
 
 class TextRenderer {
 private:
-  SDL_Renderer *renderer;
-  TTF_Font *font;
-  float ptsize;
-  bool initialised;
+  SDL_Renderer *renderer = nullptr;
+  TTF_Font *font = nullptr;
+  bool initialised = false;
 public:
-  TextRenderer(SDL_Renderer *renderer, const std::string& font_path, float ptsize);
+  TextRenderer(SDL_Renderer *renderer, const std::string& fontPath, float ptsize);
   ~TextRenderer();
 
-  void displayText(const Text &text, float x, float y);
-  bool isInitialised() { return this->initialised && font != nullptr; }
-  TTF_Font *getFont() { return this->font; } 
+  void displayText(const Text &text, float x, float y) const;
+  
+  bool isInitialised() const { return initialised && font != nullptr; }
+  TTF_Font *getFont() const { return font; } 
 };

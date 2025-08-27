@@ -56,7 +56,7 @@ void Editor::run(SDL_Renderer *renderer, UI &ui, float deltaTime) {
   highlightRect.w = gridSize;
   highlightRect.h = gridSize;
   
-  if(highlightRect.x > ui.sidebarWidth) {
+  if(highlightRect.x > ui.getSidebar().width) {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
     SDL_RenderFillRect(renderer, &highlightRect);
   }
