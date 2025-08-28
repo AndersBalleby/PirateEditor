@@ -13,5 +13,4 @@ c_cpp_properties.json
 settings.json
 .clangd
 !freetype.lib
-test_assets/
 PirateEditor
