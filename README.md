@@ -23,9 +23,9 @@ Projektet er under udvikling og fokuserer på at lære C++-programmering, SDL3 o
 
 ## 📦 Installation
 
-### 1. Klon projektet
+### 1. Klon projektet (med submodules)
 ```code
-git clone https://github.com/AndersBalleby/PirateEditor.git
+git clone --recursive https://github.com/AndersBalleby/PirateEditor.git
 cd PirateEditor
 ```
 
