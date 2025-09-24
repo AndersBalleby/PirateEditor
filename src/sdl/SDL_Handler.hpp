@@ -1,0 +1,27 @@
+#pragma once
+#include <string>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
+class SDL_Handler {
+  public:
+    SDL_Handler(int width, int height, const std::string& title);
+    ~SDL_Handler();
+
+    bool isRunning() const;
+    void clear();
+    void present();
+
+    SDL_Renderer* getRenderer() const;
+    SDL_Texture*  loadTexture(const std::string& path);
+    TTF_Font*     loadFont(const std::string& path, size_t size);
+
+  private:
+    bool initSDL();
+    void cleanup();
+
+    SDL_Window* window     = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    bool running           = false;
+  };
