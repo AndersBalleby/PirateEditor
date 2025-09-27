@@ -1,8 +1,19 @@
 #include "sdl/SDL_Handler.hpp"
+#include "logging/Logger.hpp"
 
 int main(void) {
-  SDL_Handler sdl(1280, 720, "PirateEditor");
+  Log::Init();
 
+  const int WINDOW_WIDTH = 1280;
+  const int WINDOW_HEIGHT = 720;
+  SDL_Handler sdl({
+    .title = "PirateEditor",
+    .width = WINDOW_WIDTH,
+    .height = WINDOW_HEIGHT
+  });
+
+  ResourceManager::loadTexture("resources/character/idle/1.png");
+  
   while(sdl.isRunning()) {
     
     SDL_Event event;
@@ -11,8 +22,6 @@ int main(void) {
     }
 
     sdl.clear();
-
-    
     sdl.present();
   }
 

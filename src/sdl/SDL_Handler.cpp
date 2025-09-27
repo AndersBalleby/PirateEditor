@@ -1,22 +1,27 @@
 #include "SDL_Handler.hpp"
 
-SDL_Handler::SDL_Handler(int width, int height, const std::string& title) {
+SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   if(!initSDL()) return;
 
-  window = SDL_CreateWindow(title.c_str(), width, height, SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow(winConfig.title.c_str(), winConfig.width, winConfig.height, SDL_WINDOW_RESIZABLE);
   if(!window) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Kunne ikke oprette vindue: %s", SDL_GetError());
+    Log::Critical("Kunne ikke oprette vindue");
     return;
   }
 
   renderer = SDL_CreateRenderer(window, nullptr);
   if(!renderer) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Kunne ikke oprette renderer: %s", SDL_GetError());
+    Log::Critical("Kunne ikke oprette renderer");
+    return;
+  }
+
+  if(!ResourceManager::init(renderer)) {
+    Log::Critical("Fejl ved initialiseringen af ResourceManager");
     return;
   }
 
   running = true;
-  SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "SDL_Handler er korrekt initialiseret");
+  Log::Info("SDL_Handler er korrekt initialiseret");
 }
 
 SDL_Handler::~SDL_Handler() {
@@ -25,12 +30,12 @@ SDL_Handler::~SDL_Handler() {
 
 bool SDL_Handler::initSDL() {
   if(!SDL_Init(SDL_INIT_VIDEO)) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "SDL_Init fejl: %s", SDL_GetError());
+    Log::Critical("SDL_Init fejl");
     return false;
   }
 
   if(!TTF_Init()) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "TTF_Init fejl: %s", SDL_GetError());
+    Log::Critical("TTF_Init fejl");
     return false;
   }
 
@@ -38,6 +43,10 @@ bool SDL_Handler::initSDL() {
 }
 
 void SDL_Handler::cleanup() {
+  Log::Info("Lukker alle subsystems...");
+  // Alle resources skal cleares (frigøres) før renderer og window slettes
+  ResourceManager::clear();
+
   if(renderer) SDL_DestroyRenderer(renderer);
   if(window)   SDL_DestroyWindow(window);
   
@@ -64,7 +73,7 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
 SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
   SDL_Surface* surf = IMG_Load(path.c_str());
   if(!surf) {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "IMG_Load fejl: %s", SDL_GetError());
+    Log::Error("IMG_Load fejl");
     return nullptr;
   }
 
@@ -77,7 +86,7 @@ SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
 TTF_Font* SDL_Handler::loadFont(const std::string& path, size_t size) {
   TTF_Font* font = TTF_OpenFont(path.c_str(), size);
   if(!font) {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "TTF_OpenFont fejl: %s", SDL_GetError());
+    Log::Error("TTF_OpenFont fejl");
     return nullptr;
   }
 

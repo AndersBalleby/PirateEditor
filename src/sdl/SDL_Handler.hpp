@@ -4,9 +4,18 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include "logging/Logger.hpp"
+#include "ResourceManager.hpp"
+
+struct WindowConfig {
+  std::string title;
+  int width;
+  int height;
+};
+
 class SDL_Handler {
   public:
-    SDL_Handler(int width, int height, const std::string& title);
+    SDL_Handler(WindowConfig winConfig);
     ~SDL_Handler();
 
     bool isRunning() const;
@@ -24,4 +33,4 @@ class SDL_Handler {
     SDL_Window* window     = nullptr;
     SDL_Renderer* renderer = nullptr;
     bool running           = false;
-  };
+};
