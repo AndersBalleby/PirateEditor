@@ -20,6 +20,9 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
+  // Gør at textures ikke er så dårlig opløsning
+  SDL_SetDefaultTextureScaleMode(renderer, SDL_SCALEMODE_NEAREST);
+  
   running = true;
   Log::Info("SDL_Handler er korrekt initialiseret");
 }

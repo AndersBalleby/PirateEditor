@@ -14,23 +14,23 @@ namespace Log {
 
   void Init();
 
-template<typename... Args>
-void Message(Level level, std::string_view fmt, Args&&... args) {
-    std::string msg = std::vformat(fmt, std::make_format_args(args...));
-    if (level == Level::Critical) {
-        msg += " (";
-        msg += SDL_GetError();
-        msg += ")";
-    }
+  template<typename... Args>
+  void Message(Level level, std::string_view fmt, Args&&... args) {
+      std::string msg = std::vformat(fmt, std::make_format_args(args...));
+      if (level == Level::Critical) {
+          msg += " (";
+          msg += SDL_GetError();
+          msg += ")";
+      }
 
-    switch(level) {
-        case Level::Debug:    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
-        case Level::Info:     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
-        case Level::Warn:     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
-        case Level::Error:    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
-        case Level::Critical: SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
-    }
-}
+      switch(level) {
+          case Level::Debug:    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
+          case Level::Info:     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
+          case Level::Warn:     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
+          case Level::Error:    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
+          case Level::Critical: SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.c_str()); break;
+      }
+  }
 
   template<typename... Args>
   void Error(std::string_view fmt, Args&&... args) {

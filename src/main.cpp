@@ -12,7 +12,7 @@ int main(void) {
     .height = WINDOW_HEIGHT
   });
 
-  ResourceManager::loadTexture("resources/character/idle/1.png");
+  SDL_Texture* tex = ResourceManager::loadTexture("resources/character/idle/1.png");
   
   while(sdl.isRunning()) {
     
@@ -22,6 +22,9 @@ int main(void) {
     }
 
     sdl.clear();
+
+    SDL_RenderTexture(sdl.getRenderer(), tex, NULL, NULL);
+
     sdl.present();
   }
 
