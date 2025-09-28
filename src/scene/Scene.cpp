@@ -1,14 +1,14 @@
 #include "Scene.hpp"
 
-Scene::Scene(const std::string& name) {
-  this->name = name;
-
+Scene::Scene(unsigned int level, const std::string& name) 
+  : level(level)
+  , name(name)
+  , layout(SceneLayout(level))  
+{
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
 }
 
-Scene::~Scene() {}
+void Scene::update() noexcept {};
+void Scene::draw() const noexcept {};
 
-void Scene::update() {};
-void Scene::draw() {};
-
-void Scene::saveScene(const std::string& path) {};
+void Scene::saveScene(const std::filesystem::path& path) {};

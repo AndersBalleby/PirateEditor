@@ -1,7 +1,7 @@
 #include "Editor.hpp"
 
 Editor::Editor() 
-  : current_scene(("TestScene")) 
+  : current_scene(0, "TestScene") 
 {
   Log::Info("Initialiserer editor");
 }

@@ -25,6 +25,7 @@ namespace Utils {
 
     file.close();
 
+    Log::Info("Indlæste indhold fra csv fil: {}", path);
     return map;
   }
 }

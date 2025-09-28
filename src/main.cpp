@@ -15,9 +15,6 @@ int main(void) {
   });
 
   Editor editor;
-
-  Utils::Layout test = Utils::LoadCSVFile("levels/0/level_0_bg_palms.csv");
-
   while(sdl.isRunning()) {
     
     SDL_Event event;
