@@ -10,4 +10,5 @@ Scene::~Scene() {}
 
 void Scene::update() {};
 void Scene::draw() {};
+
 void Scene::saveScene(const std::string& path) {};

@@ -15,5 +15,4 @@ class Scene {
 
   private:
     std::string name;
-    std::string file_path;
 };

@@ -1,5 +1,7 @@
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
+#include "io/utils.hpp"
+
 
 int main(void) {
   Log::Init();
@@ -13,6 +15,9 @@ int main(void) {
   });
 
   Editor editor;
+
+  Utils::Layout test = Utils::LoadCSVFile("levels/0/level_0_bg_palms.csv");
+
   while(sdl.isRunning()) {
     
     SDL_Event event;
@@ -21,8 +26,6 @@ int main(void) {
     }
 
     sdl.clear();
-
-    editor.run();
 
     sdl.present();
   }

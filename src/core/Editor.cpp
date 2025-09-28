@@ -8,4 +8,7 @@ Editor::Editor()
 
 Editor::~Editor() {}
 
-void Editor::run() {}
+void Editor::run() {
+  current_scene.update();
+  current_scene.draw();
+}
