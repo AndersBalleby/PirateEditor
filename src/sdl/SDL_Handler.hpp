@@ -26,6 +26,9 @@ class SDL_Handler {
     SDL_Texture*  loadTexture(const std::string& path);
     TTF_Font*     loadFont(const std::string& path, size_t size);
 
+    SDL_Handler(const SDL_Handler&) = delete;
+    SDL_Handler& operator=(const SDL_Handler&) = delete;
+
   private:
     bool initSDL();
     void cleanup();

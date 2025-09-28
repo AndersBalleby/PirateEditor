@@ -46,7 +46,8 @@ bool SDL_Handler::initSDL() {
 }
 
 void SDL_Handler::cleanup() {
-  Log::Info("Lukker alle subsystems...");
+  Log::Info("Afslutter alle subsystems...");
+  
   // Alle resources skal cleares (frigøres) før renderer og window slettes
   ResourceManager::clear();
 
