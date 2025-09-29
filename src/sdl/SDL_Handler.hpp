@@ -25,6 +25,7 @@ class SDL_Handler {
     SDL_Renderer* getRenderer() const;
     SDL_Texture*  loadTexture(const std::string& path);
     TTF_Font*     loadFont(const std::string& path, size_t size);
+    TTF_Font*     getFont() const;
 
     SDL_Handler(const SDL_Handler&) = delete;
     SDL_Handler& operator=(const SDL_Handler&) = delete;
@@ -33,7 +34,8 @@ class SDL_Handler {
     bool initSDL();
     void cleanup();
 
-    SDL_Window* window     = nullptr;
+    SDL_Window*   window   = nullptr;
     SDL_Renderer* renderer = nullptr;
-    bool running           = false;
+    TTF_Font*     font     = nullptr;
+    bool          running  = false;
 };

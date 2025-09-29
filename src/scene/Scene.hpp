@@ -52,7 +52,7 @@ class Scene {
     Scene& operator=(Scene&&) noexcept = default;
 
     void update() noexcept;
-    void draw() const noexcept;
+    void draw(SDL_Renderer* renderer) const noexcept;
     
     void saveScene(const std::filesystem::path& path);
 

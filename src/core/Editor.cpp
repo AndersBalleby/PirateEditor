@@ -8,7 +8,7 @@ Editor::Editor()
 
 Editor::~Editor() {}
 
-void Editor::run() {
+void Editor::run(SDL_Renderer* renderer) {
   current_scene.update();
-  current_scene.draw();
+  current_scene.draw(renderer);
 }

@@ -20,6 +20,11 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
+  if(!(font = loadFont("resources/ui/ARCADEPI.TTF", 20))) {
+    Log::Critical("Fejl ved indlæsning af font");
+    return;
+  }
+
   // Gør at textures ikke er så dårlig opløsning
   SDL_SetDefaultTextureScaleMode(renderer, SDL_SCALEMODE_NEAREST);
   
@@ -53,7 +58,9 @@ void SDL_Handler::cleanup() {
 
   if(renderer) SDL_DestroyRenderer(renderer);
   if(window)   SDL_DestroyWindow(window);
-  
+  if(font)     TTF_CloseFont(font);
+
+
   TTF_Quit();
   SDL_Quit();
 }
@@ -63,6 +70,7 @@ bool SDL_Handler::isRunning() const {
 }
 
 void SDL_Handler::clear() {
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
 }
 
@@ -74,7 +82,11 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
   return renderer;
 }
 
-SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
+TTF_Font* SDL_Handler::getFont() const {
+  return font;
+};
+
+[[nodiscard]] SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
   SDL_Surface* surf = IMG_Load(path.c_str());
   if(!surf) {
     Log::Error("IMG_Load fejl");
@@ -87,7 +99,7 @@ SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
   return tex;
 }
 
-TTF_Font* SDL_Handler::loadFont(const std::string& path, size_t size) {
+[[nodiscard]] TTF_Font* SDL_Handler::loadFont(const std::string& path, size_t size) {
   TTF_Font* font = TTF_OpenFont(path.c_str(), size);
   if(!font) {
     Log::Error("TTF_OpenFont fejl");

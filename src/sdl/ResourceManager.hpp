@@ -2,9 +2,26 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <string>
+#include <vector>
 #include <unordered_map>
+#include <filesystem>
+#include <iostream>
+#include <algorithm>
 
 #include "logging/Logger.hpp"
+#include "io/utils.hpp"
+
+class Animation {
+  public:
+    Animation(const std::string& animID, const std::filesystem::path& folderPath);
+    ~Animation() = default; // ResourceManager sørger for at destroy alle textures
+
+    void tick(float deltaTime);
+  private:
+    std::string animID;
+    std::vector<SDL_Texture*> textures;
+    float current_frame;
+};
 
 class ResourceManager {
   public:

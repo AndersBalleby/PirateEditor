@@ -12,7 +12,7 @@ bool ResourceManager::init(SDL_Renderer* renderer) {
   return true;
 }
 
-SDL_Texture* ResourceManager::loadTexture(const std::string& path) {
+[[nodiscard]] SDL_Texture* ResourceManager::loadTexture(const std::string& path) {
   if(!s_renderer) {
     Log::Critical("ResourceManager er ikke initialiseret!");
     return nullptr;
@@ -51,3 +51,16 @@ void ResourceManager::clear() {
   s_textures.clear();
   s_renderer = nullptr;
 }
+
+/* ANIMATIONS */
+Animation::Animation(const std::string& animID, const std::filesystem::path& folderPath) {
+  std::vector<std::filesystem::path> files = Utils::getAnimationFiles(folderPath);
+  if(files.size() == 0) {
+    Log::Error("Kunne ikke oprette animationen \"{}\" ({})", animID, folderPath.string());
+    return;
+  }
+
+  // Fortsæt videre her
+}
+
+void Animation::tick(float deltaTime) {}

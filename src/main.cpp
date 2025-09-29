@@ -2,7 +2,6 @@
 #include "core/Editor.hpp"
 #include "io/utils.hpp"
 
-
 int main(void) {
   Log::Init();
 
@@ -15,8 +14,27 @@ int main(void) {
   });
 
   Editor editor;
+  uint64_t now = SDL_GetTicks();
+  uint64_t last = 0;
+  double deltaTime = 0.0;
+
+  double fpsTimer = 0.0;
+  int frameCount = 0;
+  int fps = 0;
+
+  SDL_Texture* fpsTexture = nullptr;
+  SDL_FRect fpsRect;
+
+  //TODO: Fjern FPS counter fra main og tilføj support til tekst rendering
+
+  Animation test("fdsf", std::filesystem::path("resources/character/dle"));
+
   while(sdl.isRunning()) {
-    
+    last = now;
+    now = SDL_GetTicks();
+
+    deltaTime = (now - last) / 1000.0;
+
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
       if(event.type == SDL_EVENT_QUIT) return 0;
@@ -24,8 +42,33 @@ int main(void) {
 
     sdl.clear();
 
+    frameCount++;
+    fpsTimer += deltaTime;
+    if(fpsTimer >= 1.0) {
+      fps = frameCount;
+      frameCount = 0;
+      fpsTimer = 0.0;
+
+      if(fpsTexture) SDL_DestroyTexture(fpsTexture);
+
+      std::string fpsText = "FPS: " + std::to_string(fps);
+      SDL_Color white = {255, 255, 255, 255};
+      SDL_Surface* textSurface = TTF_RenderText_Blended(sdl.getFont(), fpsText.c_str(), fpsText.size(), white);
+      fpsTexture = SDL_CreateTextureFromSurface(sdl.getRenderer(), textSurface);
+      fpsRect = {10.0, 10.0, (float) textSurface->w, (float) textSurface->h};
+      SDL_DestroySurface(textSurface);
+    }
+
+    if(fpsTexture) {
+      SDL_RenderTexture(sdl.getRenderer(), fpsTexture, nullptr, &fpsRect);
+    }
+
+    editor.run(sdl.getRenderer());
+
     sdl.present();
   }
+
+  if(fpsTexture) SDL_DestroyTexture(fpsTexture);
 
   return 0;
 }
