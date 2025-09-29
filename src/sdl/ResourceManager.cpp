@@ -60,7 +60,31 @@ Animation::Animation(const std::string& animID, const std::filesystem::path& fol
     return;
   }
 
-  // Fortsæt videre her
+  for(const auto& file : files) {
+    SDL_Texture* tex = ResourceManager::loadTexture(file);
+    if(!tex) {
+      Log::Critical("Kunne ikke fuldføre animationen \"{}\", problem med filen \"{}\"", animID, file.string());
+      return;
+    }
+
+    textures.push_back(ResourceManager::loadTexture(file));
+  }
+
+  Log::Info("Indlæste alle textures for animation \"{}\"", animID);
+
 }
 
-void Animation::tick(float deltaTime) {}
+void Animation::tick(float deltaTime) {
+  current_frame += ANIMATION_SPEED * deltaTime;
+  if(current_frame >= textures.size()) {
+    current_frame = 0;
+  }
+}
+
+float Animation::getCurrentFrame() const {
+  return current_frame;
+}
+
+std::vector<SDL_Texture*> Animation::getTextures() {
+  return textures;
+}

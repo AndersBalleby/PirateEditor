@@ -17,7 +17,11 @@ class Animation {
     ~Animation() = default; // ResourceManager sørger for at destroy alle textures
 
     void tick(float deltaTime);
+    
+    float getCurrentFrame() const;
+    std::vector<SDL_Texture*> getTextures();
   private:
+    const float ANIMATION_SPEED = 10.0f;
     std::string animID;
     std::vector<SDL_Texture*> textures;
     float current_frame;
