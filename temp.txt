@@ -1,28 +1,5 @@
-  SDL_Texture* fpsTexture = nullptr;
-  SDL_FRect fpsRect;
-  double fpsTimer = 0.0;
-  int frameCount = 0;
-  int fps = 0;
 
-      frameCount++;
-    fpsTimer += deltaTime;
-    if(fpsTimer >= 1.0) {
-      fps = frameCount;
-      frameCount = 0;
-      fpsTimer = 0.0;
 
-      if(fpsTexture) SDL_DestroyTexture(fpsTexture);
 
-      std::string fpsText = "FPS: " + std::to_string(fps);
-      SDL_Color white = {255, 255, 255, 255};
-      SDL_Surface* textSurface = TTF_RenderText_Blended(sdl.getFont(), fpsText.c_str(), fpsText.size(), white);
-      fpsTexture = SDL_CreateTextureFromSurface(sdl.getRenderer(), textSurface);
-      fpsRect = {10.0, 10.0, (float) textSurface->w, (float) textSurface->h};
-      Log::Info("{}, {}", (float) textSurface->w, (float) textSurface->h);
-      SDL_DestroySurface(textSurface);
-    }
 
-       if(fpsTexture) {
-      SDL_RenderTexture(sdl.getRenderer(), fpsTexture, nullptr, &fpsRect);
-    }
-    if(fpsTexture) SDL_DestroyTexture(fpsTexture);
+    

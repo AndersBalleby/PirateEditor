@@ -2,6 +2,7 @@
 
 SDL_Renderer* ResourceManager::s_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture*> ResourceManager::s_textures;
+std::unordered_map<std::string, std::unique_ptr<Animation>> ResourceManager::s_animations;
 
 bool ResourceManager::init(SDL_Renderer* renderer) {
   if(renderer == nullptr) {
@@ -42,6 +43,21 @@ bool ResourceManager::init(SDL_Renderer* renderer) {
   return tex;
 }
 
+[[nodiscard]] Animation* ResourceManager::loadAnimation(const std::string& animID, const std::filesystem::path& folderPath) {
+    auto animation = std::make_unique<Animation>(animID, folderPath);
+    if(animation->getTextures().empty()) {
+        return nullptr;
+    }
+
+    s_animations[animID] = std::move(animation);
+    return s_animations[animID].get();
+}
+
+Animation* ResourceManager::getAnimation(const std::string &animID) {
+  auto it = s_animations.find(animID);
+  return (it != s_animations.end()) ? it->second.get() : nullptr;
+}
+
 void ResourceManager::clear() {
   for(auto &kv : s_textures) {
     Log::Info("Slettede resource: {}", kv.first.c_str());
@@ -50,6 +66,12 @@ void ResourceManager::clear() {
 
   s_textures.clear();
   s_renderer = nullptr;
+}
+
+void ResourceManager::update(float deltaTime) {
+  for(const auto& [animID, anim] : s_animations) {
+    anim->tick(deltaTime);
+  }
 }
 
 /* ANIMATIONS */
@@ -81,10 +103,28 @@ void Animation::tick(float deltaTime) {
   }
 }
 
+void Animation::draw(SDL_Renderer* renderer, SDL_FRect* srcRect, SDL_FRect* destRect) {
+  SDL_RenderTexture(renderer, textures[(int) current_frame], srcRect, destRect);
+}
+
 float Animation::getCurrentFrame() const {
   return current_frame;
 }
 
+SDL_Texture* Animation::getCurrentTexture() const {
+  return textures[(int) current_frame];
+}
+
 std::vector<SDL_Texture*> Animation::getTextures() {
   return textures;
+}
+
+/* Højden af nuværende texture */
+int Animation::getHeight() const {
+  return getCurrentTexture()->h;
+}
+
+/* Bredde af nuværende texture */
+int Animation::getWidth() const {
+  return getCurrentTexture()->w;
 }

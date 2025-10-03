@@ -20,12 +20,12 @@ struct SceneLayout {
 
   [[nodiscard]] static Utils::Layout LoadLevelLayout(unsigned int level, const std::string& name) {
     Utils::Layout result = Utils::LoadCSVFile(std::format("levels/{0}/level_{0}_{1}.csv", level, name));
-    if(result.size() == 0 || result.empty()) {
+    if(result.empty()) {
       Log::Error("Kunne ikke validere resultat fra Utils::LoadCSVFile ({})", name);
       return {};
     }  
 
-    return Utils::LoadCSVFile(std::format("levels/{0}/level_{0}_{1}.csv", level, name));
+    return result;
   }
 
   SceneLayout(unsigned int level) {
