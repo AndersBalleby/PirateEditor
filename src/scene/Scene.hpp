@@ -18,27 +18,9 @@ struct SceneLayout {
   Utils::Layout playerLayout;
   Utils::Layout terrainLayout;
 
-  [[nodiscard]] static Utils::Layout LoadLevelLayout(unsigned int level, const std::string& name) {
-    Utils::Layout result = Utils::LoadCSVFile(std::format("levels/{0}/level_{0}_{1}.csv", level, name));
-    if(result.empty()) {
-      Log::Error("Kunne ikke validere resultat fra Utils::LoadCSVFile ({})", name);
-      return {};
-    }  
+  [[nodiscard]] static Utils::Layout LoadLevelLayout(unsigned int level, const std::string& name);
 
-    return result;
-  }
-
-  SceneLayout(unsigned int level) {
-    bgPalmsLayout     = LoadLevelLayout(level, "bg_palms");
-    coinsLayout       = LoadLevelLayout(level, "coins");
-    constraintsLayout = LoadLevelLayout(level, "constraints");
-    cratesLayout      = LoadLevelLayout(level, "crates");
-    enemiesLayout     = LoadLevelLayout(level, "enemies");
-    fgPalmsLayout     = LoadLevelLayout(level, "fg_palms");
-    grassLayout       = LoadLevelLayout(level, "grass");
-    playerLayout      = LoadLevelLayout(level, "player");
-    terrainLayout     = LoadLevelLayout(level, "terrain");
-  }
+  explicit SceneLayout(unsigned int level);
 };
 
 class Scene {

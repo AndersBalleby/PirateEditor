@@ -10,6 +10,7 @@
 
 #include "logging/Logger.hpp"
 #include "io/utils.hpp"
+#include "math/vec.hpp"
 
 class Animation {
   public:

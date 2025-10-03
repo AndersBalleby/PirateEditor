@@ -74,7 +74,6 @@ void ResourceManager::update(float deltaTime) {
   }
 }
 
-/* ANIMATIONS */
 Animation::Animation(const std::string& animID, const std::filesystem::path& folderPath) {
   std::vector<std::filesystem::path> files = Utils::getAnimationFiles(folderPath);
   if(files.size() == 0) {

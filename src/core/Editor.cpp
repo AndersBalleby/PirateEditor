@@ -6,8 +6,6 @@ Editor::Editor()
   Log::Info("Initialiserer editor");
 }
 
-Editor::~Editor() {}
-
 void Editor::run(SDL_Renderer* renderer) {
   current_scene.update();
   current_scene.draw(renderer);

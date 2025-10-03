@@ -6,7 +6,7 @@
 class Editor {
   public:
     Editor();
-    ~Editor();
+    ~Editor() = default;
 
     void run(SDL_Renderer* renderer);
 

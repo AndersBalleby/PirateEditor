@@ -5,7 +5,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "logging/Logger.hpp"
-#include "ResourceManager.hpp"
+#include "core/ResourceManager.hpp"
 
 struct WindowConfig {
   std::string title;

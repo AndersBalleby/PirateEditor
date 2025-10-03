@@ -1,6 +1,9 @@
 #include "SDL_Handler.hpp"
 
 SDL_Handler::SDL_Handler(WindowConfig winConfig) {
+  const char* version = "1.0.0";
+  SDL_SetAppMetadata(winConfig.title.c_str(), version, winConfig.title.c_str());
+
   if(!initSDL()) return;
 
   window = SDL_CreateWindow(winConfig.title.c_str(), winConfig.width, winConfig.height, SDL_WINDOW_RESIZABLE);
@@ -60,7 +63,6 @@ void SDL_Handler::cleanup() {
   if(window)   SDL_DestroyWindow(window);
   if(font)     TTF_CloseFont(font);
 
-
   TTF_Quit();
   SDL_Quit();
 }
@@ -84,7 +86,7 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
 
 TTF_Font* SDL_Handler::getFont() const {
   return font;
-};
+}
 
 [[nodiscard]] SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
   SDL_Surface* surf = IMG_Load(path.c_str());
