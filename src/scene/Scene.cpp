@@ -17,25 +17,25 @@ Utils::Layout SceneLayout::LoadLevelLayout(unsigned int level, const std::string
   if(result.empty()) {
     Log::Error("Kunne ikke validere resultat fra Utils::LoadCSVFile ({})", name);
     return {};
-  }  
+  }
 
   return result;
 }
 
-Scene::Scene(unsigned int level, const std::string& name) 
+Scene::Scene(unsigned int level, const std::string& name)
   : level(level)
   , name(name)
-  , layout(SceneLayout(level))  
+  , layout(SceneLayout(level))
 {
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
 }
 
-void Scene::update() noexcept {
-  
+void Scene::update(float deltaTime) noexcept {
+  bg.update(deltaTime);
 };
 
 void Scene::draw(SDL_Renderer* renderer) const noexcept {
-
+  bg.render(renderer);
 };
 
 void Scene::saveScene(const std::filesystem::path& path) {};

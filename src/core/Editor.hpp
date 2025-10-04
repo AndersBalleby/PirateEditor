@@ -8,7 +8,7 @@ class Editor {
     Editor();
     ~Editor() = default;
 
-    void run(SDL_Renderer* renderer);
+    void run(SDL_Renderer* renderer, float deltaTime);
 
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;

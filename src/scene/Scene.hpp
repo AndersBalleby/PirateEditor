@@ -6,6 +6,7 @@
 
 #include "logging/Logger.hpp"
 #include "io/utils.hpp"
+#include "Background.hpp"
 
 struct SceneLayout {
   Utils::Layout bgPalmsLayout;
@@ -30,16 +31,15 @@ class Scene {
 
     Scene(const Scene&) = default;
     Scene(Scene&&) noexcept = default;
-    Scene& operator=(const Scene&) = default;
-    Scene& operator=(Scene&&) noexcept = default;
 
-    void update() noexcept;
+    void update(float deltaTime) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
-    
+
     void saveScene(const std::filesystem::path& path);
 
   private:
     unsigned int level;
     std::string name;
     SceneLayout layout;
+    Background bg;
 };

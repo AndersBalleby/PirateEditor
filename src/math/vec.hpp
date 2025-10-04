@@ -7,9 +7,9 @@
 /* Meget simpel 2d Vector class */
 template <typename T>
 class Vec2 {
-  private:
-    T x, y;
   public:
+    T x, y;
+
     Vec2() : x(0), y(0) {}
     Vec2(T x, T y) : x(x), y(y) {}
 

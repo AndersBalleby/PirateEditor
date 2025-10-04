@@ -29,8 +29,6 @@ int main(void) {
   uint64_t last = 0;
   double deltaTime = 0.0;
 
-  Background bg = Background();
-
   while(sdl.isRunning()) {
     // Opdater deltaTime
     last = now;
@@ -45,10 +43,9 @@ int main(void) {
 
     // Gør rendering klar
     sdl.clear();
-    bg.render(sdl.getRenderer());
 
     // Kør et editor loop
-    editor.run(sdl.getRenderer());
+    editor.run(sdl.getRenderer(), deltaTime);
 
     // fpsCounter.update håndterer både update og draw
     fpsCounter.update(sdl.getRenderer(), sdl.getFont(), deltaTime);

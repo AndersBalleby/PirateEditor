@@ -5,23 +5,42 @@
 #include "logging/Logger.hpp"
 #include "core/ResourceManager.hpp"
 
-namespace fs = std::filesystem;
+class Cloud {
+public:
+    Cloud(Vec2<float> position);
 
+    // Tillad flytning
+    Cloud(Cloud&&) noexcept = default;
+    Cloud& operator=(Cloud&&) noexcept = default;
+
+    // Forbyd kopiering
+    Cloud(const Cloud&) = delete;
+    Cloud& operator=(const Cloud&) = delete;
+
+    void update(float deltaTime);
+    void render(SDL_Renderer* renderer) const;
+    bool isActive() const;
+private:
+    Vec2<float> position;
+    SDL_Texture* cloud_texture;
+    SDL_FRect cloud_rect;
+    bool active = true;
+};
+
+// Baggrunden håndterer også clouds
 class Background {
 public:
     Background();
 
-    void render(SDL_Renderer* renderer);
+    void update(float deltaTime) noexcept;
+    void render(SDL_Renderer* renderer) const;
+    void spawnCloud(Vec2<float> position);
 private:
-    const fs::path SKY_BOTTOM_PATH = fs::path("resources/decoration/sky/sky_bottom.png");
-    const fs::path SKY_MIDDLE_PATH = fs::path("resources/decoration/sky/sky_middle.png");
-    const fs::path SKY_TOP_PATH = fs::path("resources/decoration/sky/sky_top.png");
-    const int WINDOW_WIDTH = 1280;
-    const int WINDOW_HEIGHT = 800;
-
-    SDL_FRect sky_top_rect = {0, 0, (float)WINDOW_WIDTH, 200};
-    SDL_FRect sky_middle_rect = {0, 200, (float)WINDOW_WIDTH, 400};
-    SDL_FRect sky_bottom_rect = {0, 600, (float)WINDOW_WIDTH, 200};
+    float cloudTimer = 3.5f;
+    std::vector<Cloud> clouds;
+    SDL_FRect sky_top_rect;
+    SDL_FRect sky_middle_rect;
+    SDL_FRect sky_bottom_rect;
 
     SDL_Texture* sky_top;
     SDL_Texture* sky_middle;
