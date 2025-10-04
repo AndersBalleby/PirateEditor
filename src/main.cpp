@@ -1,3 +1,4 @@
+#include "scene/Background.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
 #include "io/utils.hpp"
@@ -28,6 +29,8 @@ int main(void) {
   uint64_t last = 0;
   double deltaTime = 0.0;
 
+  Background bg = Background();
+
   while(sdl.isRunning()) {
     // Opdater deltaTime
     last = now;
@@ -42,6 +45,7 @@ int main(void) {
 
     // Gør rendering klar
     sdl.clear();
+    bg.render(sdl.getRenderer());
 
     // Kør et editor loop
     editor.run(sdl.getRenderer());
