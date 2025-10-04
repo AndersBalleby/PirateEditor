@@ -8,26 +8,16 @@ namespace fs = std::filesystem;
 //
 // CLOUD CLASS
 //
-static const fs::path CLOUD_PATH_1 = fs::path("resources/decoration/clouds/1.png");
-static const fs::path CLOUD_PATH_2 = fs::path("resources/decoration/clouds/2.png");
-static const fs::path CLOUD_PATH_3 = fs::path("resources/decoration/clouds/3.png");
+static const fs::path CLOUDS[3] = {
+    fs::path("resources/decoration/clouds/1.png"),
+    fs::path("resources/decoration/clouds/2.png"),
+    fs::path("resources/decoration/clouds/3.png")
+};
+
 Cloud::Cloud(Vec2<float> position) {
   // Random cloud texture
   int random = rand() % 3;
-  switch(random) {
-    case 0:
-      this->cloud_texture = ResourceManager::loadTexture(CLOUD_PATH_1);
-      break;
-    case 1:
-      this->cloud_texture = ResourceManager::loadTexture(CLOUD_PATH_2);
-      break;
-    case 2:
-      this->cloud_texture = ResourceManager::loadTexture(CLOUD_PATH_3);
-      break;
-    default:
-      this->cloud_texture = ResourceManager::loadTexture(CLOUD_PATH_1);
-      break;
-  }
+  this->cloud_texture = ResourceManager::loadTexture(CLOUDS[random]);
 
   if(this->cloud_texture == nullptr) {
     Log::Error("Kunne ikke indlæse sky ved position ({}, {})", position.x, position.y);
