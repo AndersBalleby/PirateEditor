@@ -2,10 +2,13 @@
 #include "core/Editor.hpp"
 #include "io/utils.hpp"
 #include "math/vec.hpp"
+#include "ui/FPS_Counter.hpp"
 
 int main(void) {
+  // Sørg for at loggeren er initialiseret
   Log::Init();
 
+  // Opret vindue
   const int WINDOW_WIDTH = 1280;
   const int WINDOW_HEIGHT = 800;
   SDL_Handler sdl({
@@ -14,59 +17,39 @@ int main(void) {
     .height = WINDOW_HEIGHT
   });
 
+  // Editor
   Editor editor;
+
+  // FPS Counter
+  FPS_Counter fpsCounter = FPS_Counter();
+
+  // DeltaTime
   uint64_t now = SDL_GetTicks();
   uint64_t last = 0;
   double deltaTime = 0.0;
 
-  SDL_Texture* fpsTexture = nullptr;
-  SDL_FRect fpsRect;
-  double fpsTimer = 0.0;
-  int frameCount = 0;
-  int fps = 0;
-
   while(sdl.isRunning()) {
+    // Opdater deltaTime
     last = now;
     now = SDL_GetTicks();
-
     deltaTime = (now - last) / 1000.0;
 
+    // Håndter events
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
       if(event.type == SDL_EVENT_QUIT) return 0;
     }
 
+    // Gør rendering klar
     sdl.clear();
 
-    frameCount++;
-    fpsTimer += deltaTime;
-    if(fpsTimer >= 1.0) {
-      fps = frameCount;
-      frameCount = 0;
-      fpsTimer = 0.0;
-
-      if(fpsTexture) SDL_DestroyTexture(fpsTexture);
-
-      std::string fpsText = "FPS: " + std::to_string(fps);
-      SDL_Color white = {255, 255, 255, 255};
-      SDL_Surface* textSurface = TTF_RenderText_Blended(sdl.getFont(), fpsText.c_str(), fpsText.size(), white);
-      fpsTexture = SDL_CreateTextureFromSurface(sdl.getRenderer(), textSurface);
-      fpsRect = {10.0, 10.0, (float) textSurface->w, (float) textSurface->h};
-
-      SDL_DestroySurface(textSurface);
-    }
-
-    
-    if(fpsTexture) {
-      SDL_RenderTexture(sdl.getRenderer(), fpsTexture, nullptr, &fpsRect);
-    }
-
+    // Kør et editor loop
     editor.run(sdl.getRenderer());
 
+    // fpsCounter.update håndterer både update og draw
+    fpsCounter.update(sdl.getRenderer(), sdl.getFont(), deltaTime);
     sdl.present();
   }
-
-  if(fpsTexture) SDL_DestroyTexture(fpsTexture);
 
   return 0;
 }

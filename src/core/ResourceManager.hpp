@@ -20,7 +20,7 @@ class Animation {
     /* Funktionalitet */
     void tick(float deltaTime);
     void draw(SDL_Renderer* renderer, SDL_FRect* srcRect, SDL_FRect* destRect);
-    
+
     /* Getters */
     float getCurrentFrame() const;
     std::vector<SDL_Texture*> getTextures();
@@ -38,7 +38,7 @@ class ResourceManager {
   public:
     /* Husk at kalde :D */
     static bool init(SDL_Renderer* renderer);
-    
+
     static SDL_Texture* loadTexture(const std::string& path);
 
     /* Wrapper for Animation constructor */
@@ -47,7 +47,7 @@ class ResourceManager {
 
     // Clear alle resources
     static void clear();
-    
+
     /* Opdaterer alle animations */
     static void update(float deltaTime);
 

@@ -5,7 +5,7 @@
 /Makefile
 /_deps
 temp.txt
-
+.cache/
 .vscode/
 
 *.DS_Store
