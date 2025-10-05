@@ -40,6 +40,7 @@ class ResourceManager {
     static bool init(SDL_Renderer* renderer);
 
     static SDL_Texture* loadTexture(const std::string& path);
+    static SDL_Texture* loadTileMap(const std::string& path);
 
     /* Wrapper for Animation constructor */
     static Animation* loadAnimation(const std::string& animID, const std::filesystem::path& folderPath);

@@ -4,6 +4,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include "SDL3/SDL_keyboard.h"
 #include "logging/Logger.hpp"
 #include "core/ResourceManager.hpp"
 
@@ -11,6 +12,15 @@ struct WindowConfig {
   std::string title;
   int width;
   int height;
+};
+
+struct SDL_State {
+    SDL_Window*   window   = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    TTF_Font*     font     = nullptr;
+    bool          running  = false;
+    float         deltaTime = 0.0f;
+    const bool* keyState;
 };
 
 class SDL_Handler {
@@ -22,6 +32,7 @@ class SDL_Handler {
     void clear();
     void present();
 
+    static SDL_State& getState();
     SDL_Renderer* getRenderer() const;
     SDL_Texture*  loadTexture(const std::string& path);
     TTF_Font*     loadFont(const std::string& path, size_t size);
@@ -34,8 +45,5 @@ class SDL_Handler {
     bool initSDL();
     void cleanup();
 
-    SDL_Window*   window   = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    TTF_Font*     font     = nullptr;
-    bool          running  = false;
+    static SDL_State state;
 };

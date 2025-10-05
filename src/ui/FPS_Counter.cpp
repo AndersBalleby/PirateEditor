@@ -11,7 +11,7 @@ FPS_Counter::FPS_Counter()
   Log::Info("FPS_Counter oprettet");
 }
 
-void FPS_Counter::update(SDL_Renderer* renderer, TTF_Font* font, float deltaTime) noexcept {
+void FPS_Counter::update(SDL_State& state) noexcept {
 
   frameCount++;
   if(fpsTimer >= 1.0) {
@@ -19,15 +19,15 @@ void FPS_Counter::update(SDL_Renderer* renderer, TTF_Font* font, float deltaTime
     frameCount = 0;
     fpsTimer = 0.0;
 
-    updateText(renderer, font);
+    updateText(state.renderer, state.font);
   }
 
   // Draw texture
   if(texture) {
-    SDL_RenderTexture(renderer, texture, nullptr, &rect);
+    SDL_RenderTexture(state.renderer, texture, nullptr, &rect);
   }
 
-  fpsTimer += deltaTime;
+  fpsTimer += state.deltaTime;
 }
 
 void FPS_Counter::updateText(SDL_Renderer* renderer, TTF_Font* font) noexcept {

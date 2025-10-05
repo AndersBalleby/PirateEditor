@@ -1,10 +1,11 @@
 #pragma once
 
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_oldnames.h"
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_timer.h"
-#include "SDL3_ttf/SDL_ttf.h"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_oldnames.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_timer.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include "sdl/SDL_Handler.hpp"
 #include "logging/Logger.hpp"
 #include <cstdint>
 
@@ -12,7 +13,7 @@ class FPS_Counter {
 public:
     FPS_Counter();
     ~FPS_Counter();
-    void update(SDL_Renderer* renderer, TTF_Font* font, float deltaTime) noexcept;
+    void update(SDL_State& state) noexcept;
 private:
     void updateText(SDL_Renderer* renderer, TTF_Font* font) noexcept;
     SDL_Texture* texture;

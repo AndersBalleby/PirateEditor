@@ -1,37 +1,40 @@
 #include "SDL_Handler.hpp"
 
+SDL_State SDL_Handler::state;
+
 SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   const char* version = "1.0.0";
   SDL_SetAppMetadata(winConfig.title.c_str(), version, winConfig.title.c_str());
 
   if(!initSDL()) return;
 
-  window = SDL_CreateWindow(winConfig.title.c_str(), winConfig.width, winConfig.height, SDL_WINDOW_RESIZABLE);
-  if(!window) {
+  state.window = SDL_CreateWindow(winConfig.title.c_str(), winConfig.width, winConfig.height, SDL_WINDOW_RESIZABLE);
+  if(!state.window) {
     Log::Critical("Kunne ikke oprette vindue");
     return;
   }
 
-  renderer = SDL_CreateRenderer(window, nullptr);
-  if(!renderer) {
+  state.renderer = SDL_CreateRenderer(state.window, nullptr);
+  if(!state.renderer) {
     Log::Critical("Kunne ikke oprette renderer");
     return;
   }
 
-  if(!ResourceManager::init(renderer)) {
+  if(!ResourceManager::init(state.renderer)) {
     Log::Critical("Fejl ved initialiseringen af ResourceManager");
     return;
   }
 
-  if(!(font = loadFont("resources/ui/ARCADEPI.TTF", 20))) {
+  if(!(state.font = loadFont("resources/ui/ARCADEPI.TTF", 20))) {
     Log::Critical("Fejl ved indlæsning af font");
     return;
   }
 
   // Gør at textures ikke er så dårlig opløsning
-  SDL_SetDefaultTextureScaleMode(renderer, SDL_SCALEMODE_NEAREST);
-  
-  running = true;
+  SDL_SetDefaultTextureScaleMode(state.renderer, SDL_SCALEMODE_NEAREST);
+
+  state.running = true;
+  state.keyState = SDL_GetKeyboardState(nullptr);
   Log::Info("SDL_Handler er korrekt initialiseret");
 }
 
@@ -55,37 +58,37 @@ bool SDL_Handler::initSDL() {
 
 void SDL_Handler::cleanup() {
   Log::Info("Afslutter alle subsystems...");
-  
+
   // Alle resources skal cleares (frigøres) før renderer og window slettes
   ResourceManager::clear();
 
-  if(renderer) SDL_DestroyRenderer(renderer);
-  if(window)   SDL_DestroyWindow(window);
-  if(font)     TTF_CloseFont(font);
+  if(state.renderer) SDL_DestroyRenderer(state.renderer);
+  if(state.window)   SDL_DestroyWindow(state.window);
+  if(state.font)     TTF_CloseFont(state.font);
 
   TTF_Quit();
   SDL_Quit();
 }
 
 bool SDL_Handler::isRunning() const {
-  return running;
+  return state.running;
 }
 
 void SDL_Handler::clear() {
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderClear(renderer);
+  SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 255);
+  SDL_RenderClear(state.renderer);
 }
 
 void SDL_Handler::present() {
-  SDL_RenderPresent(renderer);
+  SDL_RenderPresent(state.renderer);
 }
 
 SDL_Renderer* SDL_Handler::getRenderer() const {
-  return renderer;
+  return state.renderer;
 }
 
 TTF_Font* SDL_Handler::getFont() const {
-  return font;
+  return state.font;
 }
 
 [[nodiscard]] SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
@@ -95,9 +98,9 @@ TTF_Font* SDL_Handler::getFont() const {
     return nullptr;
   }
 
-  SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+  SDL_Texture* tex = SDL_CreateTextureFromSurface(state.renderer, surf);
   SDL_DestroySurface(surf);
-  
+
   return tex;
 }
 
@@ -109,4 +112,8 @@ TTF_Font* SDL_Handler::getFont() const {
   }
 
   return font;
+}
+
+SDL_State& SDL_Handler::getState() {
+  return state;
 }

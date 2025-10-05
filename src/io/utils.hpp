@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <algorithm>
 
-#include "logging/Logger.hpp" 
+#include "logging/Logger.hpp"
 
 namespace Utils {
   using Layout = std::vector<std::vector<int>>;
@@ -19,4 +19,3 @@ namespace Utils {
   int extractNumber(const std::filesystem::path& p);
   std::vector<std::filesystem::path> getAnimationFiles(const std::filesystem::path& folderPath);
 }
- 

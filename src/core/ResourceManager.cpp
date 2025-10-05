@@ -1,4 +1,7 @@
 #include "ResourceManager.hpp"
+#include "logging/Logger.hpp"
+#include <__format/format_functions.h>
+
 
 SDL_Renderer* ResourceManager::s_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture*> ResourceManager::s_textures;
@@ -41,6 +44,16 @@ bool ResourceManager::init(SDL_Renderer* renderer) {
   Log::Info("Indlæste resource: {}", path.c_str());
   s_textures[path] = tex;
   return tex;
+}
+
+SDL_Texture* ResourceManager::loadTileMap(const std::string& path) {
+  SDL_Texture* mapTex = loadTexture(path);
+  if(!mapTex) {
+    Log::Critical("Kunne ikke indlæse tilemap: {}", path.c_str());
+    return nullptr;
+  }
+
+  return mapTex;
 }
 
 [[nodiscard]] Animation* ResourceManager::loadAnimation(const std::string& animID, const std::filesystem::path& folderPath) {

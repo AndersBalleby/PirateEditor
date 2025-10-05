@@ -6,7 +6,7 @@ Editor::Editor()
   Log::Info("Initialiserer editor");
 }
 
-void Editor::run(SDL_Renderer* renderer, float deltaTime) {
-  current_scene.update(deltaTime);
-  current_scene.draw(renderer);
+void Editor::run(SDL_State& state) {
+  current_scene.update(state.deltaTime, state.keyState);
+  current_scene.draw(state.renderer);
 }

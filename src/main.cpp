@@ -33,7 +33,7 @@ int main(void) {
     // Opdater deltaTime
     last = now;
     now = SDL_GetTicks();
-    deltaTime = (now - last) / 1000.0;
+    sdl.getState().deltaTime = (now - last) / 1000.0;
 
     // Håndter events
     SDL_Event event;
@@ -45,10 +45,10 @@ int main(void) {
     sdl.clear();
 
     // Kør et editor loop
-    editor.run(sdl.getRenderer(), deltaTime);
+    editor.run(sdl.getState());
 
     // fpsCounter.update håndterer både update og draw
-    fpsCounter.update(sdl.getRenderer(), sdl.getFont(), deltaTime);
+    fpsCounter.update(sdl.getState());
     sdl.present();
   }
 
