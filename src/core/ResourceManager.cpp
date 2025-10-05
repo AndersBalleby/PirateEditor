@@ -1,7 +1,5 @@
 #include "ResourceManager.hpp"
 #include "logging/Logger.hpp"
-#include <__format/format_functions.h>
-
 
 SDL_Renderer* ResourceManager::s_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture*> ResourceManager::s_textures;
