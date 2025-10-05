@@ -33,7 +33,7 @@ int main(void) {
     // Opdater deltaTime
     last = now;
     now = SDL_GetTicks();
-    sdl.getState().deltaTime = (now - last) / 1000.0;
+    sdl.getState().tickDeltaTime(now, last);
 
     // Håndter events
     SDL_Event event;

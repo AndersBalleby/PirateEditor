@@ -12,6 +12,7 @@
 #include "io/utils.hpp"
 #include "math/vec.hpp"
 
+const int TILE_SIZE = 64;
 class Animation {
   public:
     Animation(const std::string& animID, const std::filesystem::path& folderPath);

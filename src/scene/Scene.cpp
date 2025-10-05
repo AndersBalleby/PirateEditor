@@ -34,9 +34,23 @@ Scene::Scene(unsigned int level, const std::string& name)
   , layout(SceneLayout(level))
 {
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
+
+  // TODO -> Opstil en funktion som tager alle layouts og giver dem tiles ligesom her.
   for(size_t i = 0; i < layout.terrainLayout.size(); ++i) {
     for(size_t j = 0; j < layout.terrainLayout[i].size(); ++j) {
-      tiles.push_back(TileFactory::createTile(TILE_TYPE_TERRAIN, {(float) j, (float) i}, layout.terrainLayout[i][j]));
+      int value = layout.terrainLayout[i][j];
+      if(value != -1) {
+        tiles.push_back(TileFactory::createTile(TILE_TYPE_TERRAIN, {(float) j, (float) i}, value));
+      }
+    }
+  }
+
+  for(size_t i = 0; i < layout.cratesLayout.size(); ++i) {
+    for(size_t j = 0; j < layout.cratesLayout[i].size(); ++j) {
+      int value = layout.cratesLayout[i][j];
+      if(value != -1) {
+        crates.push_back(TileFactory::createTile(TILE_TYPE_CRATE, {(float) j, (float) i}, value));
+      }
     }
   }
 }
@@ -51,6 +65,10 @@ void Scene::update(float deltaTime, const bool* keyState) noexcept {
   for(auto& tile : tiles) {
     tile->update(cameraX);
   }
+
+  for(auto& tile : crates) {
+    tile->update(cameraX);
+  }
 };
 
 void Scene::draw(SDL_Renderer* renderer) const noexcept {
@@ -59,14 +77,17 @@ void Scene::draw(SDL_Renderer* renderer) const noexcept {
   for(const auto& tile : tiles) {
     tile->draw(renderer);
   }
+
+  for(auto& tile : crates) {
+    tile->draw(renderer);
+  }
 };
 
 void Scene::handleInput(const SDL_Event &event, float deltaTime) noexcept {
   if(event.type == SDL_EVENT_KEY_DOWN) {
       if(event.key.key == SDLK_RIGHT) {
           cameraX += scrollSpeed * deltaTime; // scroll til højre
-      }
-      else if(event.key.key == SDLK_LEFT) {
+      } else if(event.key.key == SDLK_LEFT) {
           cameraX -= scrollSpeed * deltaTime; // scroll til venstre
       }
   }

@@ -17,6 +17,7 @@
 
 enum TileType {
   TILE_TYPE_TERRAIN,
+  TILE_TYPE_CRATE,
 };
 
 class Tile {
@@ -29,12 +30,14 @@ public:
 private:
 
   void initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex);
+  void initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset);
 
   TileType type;
   SDL_Texture* texture;
   Vec2<float> position;
   SDL_FRect dstRect;
   SDL_FRect srcRect;
+  bool staticTile;
 };
 
 class TileFactory {

@@ -38,6 +38,10 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   Log::Info("SDL_Handler er korrekt initialiseret");
 }
 
+void SDL_State::tickDeltaTime(uint64_t now, uint64_t last) {
+  deltaTime = (float)(now - last) / 1000.0f;
+}
+
 SDL_Handler::~SDL_Handler() {
   cleanup();
 }

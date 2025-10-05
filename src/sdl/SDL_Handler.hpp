@@ -21,6 +21,8 @@ struct SDL_State {
     bool          running  = false;
     float         deltaTime = 0.0f;
     const bool* keyState;
+
+    void tickDeltaTime(uint64_t now, uint64_t last);
 };
 
 class SDL_Handler {

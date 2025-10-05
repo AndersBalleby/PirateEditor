@@ -49,5 +49,6 @@ class Scene {
     unsigned int level;
     SceneLayout layout;
     std::vector<Tile*> tiles;
+    std::vector<Tile*> crates;
     Background bg;
 };
