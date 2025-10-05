@@ -18,6 +18,7 @@
 enum TileType {
   TILE_TYPE_TERRAIN,
   TILE_TYPE_CRATE,
+  TILE_TYPE_GRASS,
 };
 
 class Tile {

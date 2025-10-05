@@ -3,6 +3,7 @@
 #include <string>
 #include <format>
 #include <filesystem>
+#include <vector>
 
 #include "logging/Logger.hpp"
 #include "core/TileManager.hpp"
@@ -26,6 +27,17 @@ struct SceneLayout {
   explicit SceneLayout(unsigned int level);
 };
 
+struct SceneTiles {
+  std::vector<Tile*> terrainTiles;
+  std::vector<Tile*> crateTiles;
+  std::vector<Tile*> grassTiles;
+
+  static std::vector<Tile*> LoadTiles(TileType type, const Utils::Layout& layout);
+  void DrawTiles(SDL_Renderer* renderer) const;
+  void UpdateTiles(SDL_State& state, float mapHeight, float cameraX);
+
+  explicit SceneTiles(const SceneLayout& layout);
+};
 
 class Scene {
   public:
@@ -49,7 +61,6 @@ class Scene {
     std::string name;
     unsigned int level;
     SceneLayout layout;
-    std::vector<Tile*> tiles;
-    std::vector<Tile*> crates;
+    SceneTiles tiles;
     Background bg;
 };

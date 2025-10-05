@@ -27,6 +27,9 @@ Tile::Tile(TileType type, Vec2<float> position, int tileIndex)
     case TILE_TYPE_CRATE:
       initializeStaticTile(ResourceManager::loadTexture("resources/terrain/crate.png"), position, {0, 24});
       break;
+    case TILE_TYPE_GRASS:
+      initializeFromTilemap(ResourceManager::loadTileMap("resources/decoration/grass/grass.png"), position, tileIndex);
+      break;
     }
 }
 
@@ -76,7 +79,7 @@ void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, 
     float tilesheetWidth = 0, tilesheetHeight = 0;
     SDL_GetTextureSize(tileMapTex, &tilesheetWidth, &tilesheetHeight);
 
-    const int tilesPerRow = 4; // 256 / 64
+    const int tilesPerRow = tilesheetWidth / TILE_SIZE; // 256 / 64
 
     srcRect.x = static_cast<float>((tileIndex % tilesPerRow) * TILE_SIZE);
     srcRect.y = static_cast<float>((tileIndex / tilesPerRow) * TILE_SIZE);

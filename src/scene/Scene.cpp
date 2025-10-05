@@ -28,31 +28,64 @@ Utils::Layout SceneLayout::LoadLevelLayout(unsigned int level, const std::string
   return result;
 }
 
+SceneTiles::SceneTiles(const SceneLayout& layout) {
+  terrainTiles = LoadTiles(TILE_TYPE_TERRAIN, layout.terrainLayout);
+  crateTiles = LoadTiles(TILE_TYPE_CRATE, layout.cratesLayout);
+  grassTiles = LoadTiles(TILE_TYPE_GRASS, layout.grassLayout);
+}
+
+std::vector<Tile*> SceneTiles::LoadTiles(TileType type, const Utils::Layout& layout) {
+  std::vector<Tile*> tiles;
+  for(size_t i = 0; i < layout.size(); ++i) {
+    for(size_t j = 0; j < layout[i].size(); ++j) {
+      int value = layout[i][j];
+      if(value != -1) {
+        tiles.push_back(TileFactory::createTile(type, {(float) j, (float) i}, value));
+      }
+    }
+  }
+  return tiles;
+}
+
+void SceneTiles::UpdateTiles(SDL_State &state, float mapHeight, float cameraX) {
+  float mapOffsetY = state.windowHeight - mapHeight;
+  if(mapOffsetY < 0) mapOffsetY = 0; // hvis vinduet er mindre end map
+
+  for(auto& tile : terrainTiles) {
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
+  }
+  for(auto& tile : crateTiles) {
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
+  }
+  for(auto& tile : grassTiles) {
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
+  }
+}
+
+void SceneTiles::DrawTiles(SDL_Renderer* renderer) const {
+  for(const auto& tile : terrainTiles) {
+    tile->draw(renderer);
+  }
+
+  for(const auto& tile : crateTiles) {
+    tile->draw(renderer);
+  }
+
+  for(const auto& tile : grassTiles) {
+    tile->draw(renderer);
+  }
+}
+
 Scene::Scene(unsigned int level, const std::string& name)
   : level(level)
   , name(name)
   , layout(SceneLayout(level))
+  , tiles(SceneTiles(layout))
 {
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
-
-  // TODO -> Opstil en funktion som tager alle layouts og giver dem tiles ligesom her.
-  for(size_t i = 0; i < layout.terrainLayout.size(); ++i) {
-    for(size_t j = 0; j < layout.terrainLayout[i].size(); ++j) {
-      int value = layout.terrainLayout[i][j];
-      if(value != -1) {
-        tiles.push_back(TileFactory::createTile(TILE_TYPE_TERRAIN, {(float) j, (float) i}, value));
-      }
-    }
-  }
-
-  for(size_t i = 0; i < layout.cratesLayout.size(); ++i) {
-    for(size_t j = 0; j < layout.cratesLayout[i].size(); ++j) {
-      int value = layout.cratesLayout[i][j];
-      if(value != -1) {
-        crates.push_back(TileFactory::createTile(TILE_TYPE_CRATE, {(float) j, (float) i}, value));
-      }
-    }
-  }
 }
 
 void Scene::update(SDL_State& state) noexcept {
@@ -63,30 +96,13 @@ void Scene::update(SDL_State& state) noexcept {
   if(state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) cameraX -= scrollSpeed * state.deltaTime;
 
   float mapHeight = layout.terrainLayout.size() * TILE_SIZE;
-  float mapOffsetY = state.windowHeight - mapHeight;
-  if(mapOffsetY < 0) mapOffsetY = 0; // hvis vinduet er mindre end map
-
-  for(auto& tile : tiles) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-    tile->update({cameraX, 0.0f});
-  }
-
-  for(auto& tile : crates) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-    tile->update({cameraX, 0.0f});
-  }
+  tiles.UpdateTiles(state, mapHeight, cameraX);
 };
 
 void Scene::draw(SDL_Renderer* renderer) const noexcept {
   bg.render(renderer);
 
-  for(const auto& tile : tiles) {
-    tile->draw(renderer);
-  }
-
-  for(auto& tile : crates) {
-    tile->draw(renderer);
-  }
+  tiles.DrawTiles(renderer);
 };
 
 void Scene::handleInput(const SDL_Event &event, float deltaTime) noexcept {
