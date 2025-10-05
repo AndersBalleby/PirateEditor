@@ -1,3 +1,4 @@
+#include "SDL3/SDL_events.h"
 #include "scene/Background.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
@@ -39,6 +40,10 @@ int main(void) {
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
       if(event.type == SDL_EVENT_QUIT) return 0;
+      if(event.type == SDL_EVENT_WINDOW_RESIZED) {
+        sdl.getState().windowWidth = event.window.data1;
+        sdl.getState().windowHeight = event.window.data2;
+      }
     }
 
     // Gør rendering klar

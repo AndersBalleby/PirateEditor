@@ -20,6 +20,8 @@ struct SDL_State {
     TTF_Font*     font     = nullptr;
     bool          running  = false;
     float         deltaTime = 0.0f;
+    float         windowHeight = 0.0f;
+    float         windowWidth = 0.0f;
     const bool* keyState;
 
     void tickDeltaTime(uint64_t now, uint64_t last);

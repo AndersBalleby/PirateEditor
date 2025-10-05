@@ -30,11 +30,11 @@ Tile::Tile(TileType type, Vec2<float> position, int tileIndex)
     }
 }
 
-void Tile::update(float offsetX) {
-  dstRect.x -= offsetX;
+void Tile::update(Vec2<float>offset) {
+  dstRect.x -= offset.x;
+  dstRect.y -= offset.y;
 }
 
-const float MAP_OFFSET_Y = 100.0f;
 void Tile::draw(SDL_Renderer *renderer) const {
   if (!texture) {
       Log::Error("Kunne ikke tegne tile: passerede nullptr i texture");
@@ -58,11 +58,12 @@ void Tile::initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2
   SDL_GetTextureSize(texture, &texW, &texH);
 
   dstRect.x = static_cast<float>(position.x * TILE_SIZE) + offset.x;
-  dstRect.y = static_cast<float>(position.y * TILE_SIZE) + MAP_OFFSET_Y + offset.y;
+  dstRect.y = static_cast<float>(position.y * TILE_SIZE) + offset.y;
   dstRect.w = texW;
   dstRect.h = texH;
 
   this->texture = texture;
+  this->offset = offset;
   this->staticTile = true;
 }
 
@@ -84,7 +85,7 @@ void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, 
 
 
     dstRect.x = static_cast<float>(position.x * TILE_SIZE);
-    dstRect.y = static_cast<float>(position.y * TILE_SIZE) + MAP_OFFSET_Y;
+    dstRect.y = static_cast<float>(position.y * TILE_SIZE);
     dstRect.w = TILE_SIZE;
     dstRect.h = TILE_SIZE;
 

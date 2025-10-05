@@ -7,6 +7,7 @@
 #include "logging/Logger.hpp"
 #include "core/TileManager.hpp"
 #include "io/utils.hpp"
+#include "sdl/SDL_Handler.hpp"
 #include "Background.hpp"
 
 struct SceneLayout {
@@ -34,7 +35,7 @@ class Scene {
     Scene(const Scene&) = default;
     Scene(Scene&&) noexcept = default;
 
-    void update(float deltaTime, const bool* keyState) noexcept;
+    void update(SDL_State& state) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
     void handleInput(const SDL_Event& event, float deltaTime) noexcept;
 

@@ -55,19 +55,25 @@ Scene::Scene(unsigned int level, const std::string& name)
   }
 }
 
-void Scene::update(float deltaTime, const bool* keyState) noexcept {
-  bg.update(deltaTime);
+void Scene::update(SDL_State& state) noexcept {
+  bg.update(state);
 
   cameraX = 0.0f;
-  if(keyState[SDL_SCANCODE_RIGHT] || keyState[SDL_SCANCODE_D]) cameraX += scrollSpeed * deltaTime;
-  if(keyState[SDL_SCANCODE_LEFT] || keyState[SDL_SCANCODE_A]) cameraX -= scrollSpeed * deltaTime;
+  if(state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) cameraX += scrollSpeed * state.deltaTime;
+  if(state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) cameraX -= scrollSpeed * state.deltaTime;
+
+  float mapHeight = layout.terrainLayout.size() * TILE_SIZE;
+  float mapOffsetY = state.windowHeight - mapHeight;
+  if(mapOffsetY < 0) mapOffsetY = 0; // hvis vinduet er mindre end map
 
   for(auto& tile : tiles) {
-    tile->update(cameraX);
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
   }
 
   for(auto& tile : crates) {
-    tile->update(cameraX);
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
   }
 };
 

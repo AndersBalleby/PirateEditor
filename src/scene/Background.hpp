@@ -3,6 +3,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "logging/Logger.hpp"
+#include "sdl/SDL_Handler.hpp"
 #include "core/ResourceManager.hpp"
 
 class Cloud {
@@ -32,7 +33,7 @@ class Background {
 public:
     Background();
 
-    void update(float deltaTime) noexcept;
+    void update(SDL_State& state) noexcept;
     void render(SDL_Renderer* renderer) const;
     void spawnCloud(Vec2<float> position);
 private:

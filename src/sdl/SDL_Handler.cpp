@@ -33,8 +33,11 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   // Gør at textures ikke er så dårlig opløsning
   SDL_SetDefaultTextureScaleMode(state.renderer, SDL_SCALEMODE_NEAREST);
 
+  state.windowHeight = winConfig.height;
+  state.windowWidth = winConfig.width;
   state.running = true;
   state.keyState = SDL_GetKeyboardState(nullptr);
+
   Log::Info("SDL_Handler er korrekt initialiseret");
 }
 

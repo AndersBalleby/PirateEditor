@@ -25,8 +25,12 @@ public:
   Tile(TileType type, Vec2<float> position, int tileIndex = 0); // id er til tilemaps, default = 0
   ~Tile() = default;
 
-  void update(float offsetX);
+  void update(Vec2<float> offset);
   void draw(SDL_Renderer* renderer) const;
+
+  SDL_FRect dstRect;
+  Vec2<float> position;
+  Vec2<float> offset;
 private:
 
   void initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex);
@@ -34,8 +38,6 @@ private:
 
   TileType type;
   SDL_Texture* texture;
-  Vec2<float> position;
-  SDL_FRect dstRect;
   SDL_FRect srcRect;
   bool staticTile;
 };

@@ -1,5 +1,6 @@
 #include "Background.hpp"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
 #include "core/ResourceManager.hpp"
 #include "logging/Logger.hpp"
 
@@ -87,18 +88,23 @@ void Background::spawnCloud(Vec2<float> position) {
 }
 
 static const float CLOUD_SPAWN_INTERVAL = 5.0f;
-void Background::update(float deltaTime) noexcept {
+void Background::update(SDL_State& state) noexcept {
   if(cloudTimer >= CLOUD_SPAWN_INTERVAL) {
-    spawnCloud({(float) WINDOW_WIDTH, (float)(rand() % (WINDOW_HEIGHT - 650))});
+    spawnCloud({state.windowWidth, static_cast<float>(rand()) / RAND_MAX * (state.windowHeight - 650)});
     cloudTimer = 0.0f;
   }
 
-  cloudTimer += deltaTime;
+  cloudTimer += state.deltaTime;
 
   // Opdater skyer
   for(auto& cloud : clouds) {
-    cloud.update(deltaTime);
+    cloud.update(state.deltaTime);
   }
+
+  // Opdater rects ud fra state->windowWidth og height
+  sky_top_rect = {0, 0, state.windowWidth, state.windowHeight * 0.25f};
+  sky_middle_rect = {0, state.windowHeight * 0.25f, state.windowWidth, state.windowHeight * 0.5f};
+  sky_bottom_rect = {0, state.windowHeight * 0.75f, state.windowWidth, state.windowHeight * 0.25f};
 
   // Fjern inaktive skyer
   clouds.erase(
