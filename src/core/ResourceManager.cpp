@@ -92,7 +92,6 @@ Animation::Animation(const std::string& animID, const std::filesystem::path& fol
   }
 
   Log::Info("Indlæste alle textures for animation \"{}\"", animID);
-
 }
 
 void Animation::tick(float deltaTime) {

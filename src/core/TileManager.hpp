@@ -3,6 +3,7 @@
 #include "math/vec.hpp"
 #include <vector>
 #include <SDL3/SDL.h>
+
 enum TileType {
   TILE_TYPE_TERRAIN,
   TILE_TYPE_COIN,
@@ -23,11 +24,20 @@ private:
   Vec2<float> position;
 };
 
+struct TileGroup {
+    std::string id;
+    std::vector<Tile*> tiles;
+
+    TileGroup(const std::string& id);
+};
+
 class TileManager {
 public:
     TileManager();
     ~TileManager();
+
+    TileGroup* createTileGroup(const std::string& id);
 private:
-  std::vector<Tile*> tiles;
+  std::vector<TileGroup*> tileGroups;
   bool init();
 };

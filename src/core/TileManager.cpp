@@ -3,7 +3,14 @@
 //
 // TILES
 //
-Tile::Tile(TileType type) {}
+Tile::Tile(TileType type) {
+    this->type = type;
+}
+
+//
+// TILEGROUP
+//
+TileGroup::TileGroup(const std::string& id) : id(id) {}
 
 //
 // TILEMANAGER
