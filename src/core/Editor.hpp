@@ -10,6 +10,8 @@ class Editor {
     ~Editor() = default;
 
     void run(SDL_State& state);
+    void update(SDL_State& state);
+    void draw(SDL_Renderer* renderer) const;
 
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;
