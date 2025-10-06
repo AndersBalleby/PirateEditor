@@ -10,10 +10,10 @@
 #include "logging/Logger.hpp"
 
 namespace Utils {
-  using Layout = std::vector<std::vector<int>>;
+  using TileLayer = std::vector<std::vector<int>>;
 
   /* Indlæser CSV layout til scene for en tile group*/
-  Layout LoadCSVFile(const std::string& path);
+  TileLayer LoadCSVFile(const std::string& path);
 
   /* Indlæser animation filer ud fra korrekt rækkefølge */
   int extractNumber(const std::filesystem::path& p);

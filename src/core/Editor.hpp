@@ -14,5 +14,5 @@ class Editor {
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;
   private:
-    Scene current_scene;
+    Scene::Manager scene_manager;
 };

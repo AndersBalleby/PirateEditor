@@ -30,7 +30,29 @@ Tile::Tile(TileType type, Vec2<float> position, int tileIndex)
     case TILE_TYPE_GRASS:
       initializeFromTilemap(ResourceManager::loadTileMap("resources/decoration/grass/grass.png"), position, tileIndex);
       break;
-    }
+    case TILE_TYPE_PLAYER_SETUP:
+      initializeFromTilemap(ResourceManager::loadTexture("resources/character/setup_tiles.png"), position, tileIndex);
+      break;
+    case TILE_TYPE_ENEMY:
+      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex);
+      break;
+    case TILE_TYPE_COIN:
+      initializeFromTilemap(ResourceManager::loadTexture("resources/coins/coin_tiles.png"), position, tileIndex);
+      break;
+    case TILE_TYPE_FG_PALM:
+      if(tileIndex == 1) { // 1 = small, 2 = large
+        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_small/small_1.png"), position, {0, -38});
+      } else {
+        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png"), position, {0, -64});
+      }
+      break;
+    case TILE_TYPE_BG_PALM:
+      initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_bg/bg_palm_1.png"), position, {0, -64});
+      break;
+    case TILE_TYPE_CONSTRAINT:
+      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex);
+      break;
+  }
 }
 
 void Tile::update(Vec2<float>offset) {

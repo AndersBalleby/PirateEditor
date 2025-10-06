@@ -1,12 +1,12 @@
 #include "Editor.hpp"
 
 Editor::Editor()
-  : current_scene(0, "TestScene")
+  : scene_manager(0, "TestScene")
 {
   Log::Info("Initialiserer editor");
 }
 
 void Editor::run(SDL_State& state) {
-  current_scene.update(state);
-  current_scene.draw(state.renderer);
+  scene_manager.update(state);
+  scene_manager.draw(state.renderer);
 }

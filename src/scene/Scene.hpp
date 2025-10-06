@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <format>
 #include <filesystem>
@@ -11,41 +12,67 @@
 #include "sdl/SDL_Handler.hpp"
 #include "Background.hpp"
 
-struct SceneLayout {
-  Utils::Layout bgPalmsLayout;
-  Utils::Layout coinsLayout;
-  Utils::Layout constraintsLayout;
-  Utils::Layout cratesLayout;
-  Utils::Layout enemiesLayout;
-  Utils::Layout fgPalmsLayout;
-  Utils::Layout grassLayout;
-  Utils::Layout playerLayout;
-  Utils::Layout terrainLayout;
+namespace Scene {
+  using TileGroup = std::vector<Tile*>;
 
-  [[nodiscard]] static Utils::Layout LoadLevelLayout(unsigned int level, const std::string& name);
+  void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX);
+  void DrawTileGroup(TileGroup& group, SDL_Renderer* renderer);
 
-  explicit SceneLayout(unsigned int level);
+struct Layout {
+  Utils::TileLayer bgPalmsLayout;
+  Utils::TileLayer coinsLayout;
+  Utils::TileLayer constraintsLayout;
+  Utils::TileLayer cratesLayout;
+  Utils::TileLayer enemiesLayout;
+  Utils::TileLayer fgPalmsLayout;
+  Utils::TileLayer grassLayout;
+  Utils::TileLayer playerSetupLayout;
+  Utils::TileLayer terrainLayout;
+  Utils::TileLayer constraintLayout;
+
+  [[nodiscard]] static Utils::TileLayer LoadLevelLayout(unsigned int level, const std::string& name);
+
+  explicit Layout(unsigned int level);
 };
 
-struct SceneTiles {
-  std::vector<Tile*> terrainTiles;
-  std::vector<Tile*> crateTiles;
-  std::vector<Tile*> grassTiles;
+struct Tiles {
+  TileGroup terrainTiles;
+  TileGroup crateTiles;
+  TileGroup grassTiles;
+  TileGroup playerSetupTiles;
+  TileGroup enemyTiles;
+  TileGroup coinsTiles;
+  TileGroup fgPalmsTiles;
+  TileGroup bgPalmsTiles;
+  TileGroup constraintTiles;
 
-  static std::vector<Tile*> LoadTiles(TileType type, const Utils::Layout& layout);
+  // Vigtigt: Dette er også rækkefølgen de opdateres og tegnes i
+  std::array<TileGroup*, 9> allGroups {
+    &bgPalmsTiles,
+    &terrainTiles,
+    &grassTiles,
+    &crateTiles,
+    &enemyTiles,
+    &fgPalmsTiles,
+    &coinsTiles,
+    &constraintTiles,
+    &playerSetupTiles
+  };
+
+  static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout);
   void DrawTiles(SDL_Renderer* renderer) const;
   void UpdateTiles(SDL_State& state, float mapHeight, float cameraX);
 
-  explicit SceneTiles(const SceneLayout& layout);
+  explicit Tiles(const Layout& layout);
 };
 
-class Scene {
+class Manager {
   public:
-    Scene(unsigned int level, const std::string& name);
-    ~Scene() = default;
+    Manager(unsigned int level, const std::string& name);
+    ~Manager() = default;
 
-    Scene(const Scene&) = default;
-    Scene(Scene&&) noexcept = default;
+    Manager(const Manager&) = default;
+    Manager(Manager&&) noexcept = default;
 
     void update(SDL_State& state) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
@@ -60,7 +87,9 @@ class Scene {
 
     std::string name;
     unsigned int level;
-    SceneLayout layout;
-    SceneTiles tiles;
+    Layout layout;
+    Tiles tiles;
     Background bg;
+};
+
 };

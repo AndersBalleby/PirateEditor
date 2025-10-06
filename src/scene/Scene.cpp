@@ -6,7 +6,22 @@
 #include "core/ResourceManager.hpp"
 #include "core/TileManager.hpp"
 
-SceneLayout::SceneLayout(unsigned int level) {
+namespace Scene {
+
+  void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
+    for(auto& tile : group) {
+      tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+      tile->update({cameraX, 0.0f});
+    }
+  }
+
+  void DrawTileGroup(const TileGroup& group, SDL_Renderer* renderer) {
+    for(auto& tile : group) {
+      tile->draw(renderer);
+    }
+  }
+
+Layout::Layout(unsigned int level) {
   bgPalmsLayout     = LoadLevelLayout(level, "bg_palms");
   coinsLayout       = LoadLevelLayout(level, "coins");
   constraintsLayout = LoadLevelLayout(level, "constraints");
@@ -14,12 +29,13 @@ SceneLayout::SceneLayout(unsigned int level) {
   enemiesLayout     = LoadLevelLayout(level, "enemies");
   fgPalmsLayout     = LoadLevelLayout(level, "fg_palms");
   grassLayout       = LoadLevelLayout(level, "grass");
-  playerLayout      = LoadLevelLayout(level, "player");
+  playerSetupLayout = LoadLevelLayout(level, "player");
   terrainLayout     = LoadLevelLayout(level, "terrain");
+  constraintLayout  = LoadLevelLayout(level, "constraints");
 }
 
-Utils::Layout SceneLayout::LoadLevelLayout(unsigned int level, const std::string& name) {
-  Utils::Layout result = Utils::LoadCSVFile(std::format("levels/{0}/level_{0}_{1}.csv", level, name));
+Utils::TileLayer Layout::LoadLevelLayout(unsigned int level, const std::string& name) {
+  Utils::TileLayer result = Utils::LoadCSVFile(std::format("levels/{0}/level_{0}_{1}.csv", level, name));
   if(result.empty()) {
     Log::Error("Kunne ikke validere resultat fra Utils::LoadCSVFile ({})", name);
     return {};
@@ -28,14 +44,20 @@ Utils::Layout SceneLayout::LoadLevelLayout(unsigned int level, const std::string
   return result;
 }
 
-SceneTiles::SceneTiles(const SceneLayout& layout) {
-  terrainTiles = LoadTiles(TILE_TYPE_TERRAIN, layout.terrainLayout);
-  crateTiles = LoadTiles(TILE_TYPE_CRATE, layout.cratesLayout);
-  grassTiles = LoadTiles(TILE_TYPE_GRASS, layout.grassLayout);
+Tiles::Tiles(const Layout& layout) {
+  terrainTiles     = LoadTiles(TILE_TYPE_TERRAIN, layout.terrainLayout);
+  crateTiles       = LoadTiles(TILE_TYPE_CRATE, layout.cratesLayout);
+  grassTiles       = LoadTiles(TILE_TYPE_GRASS, layout.grassLayout);
+  playerSetupTiles = LoadTiles(TILE_TYPE_PLAYER_SETUP, layout.playerSetupLayout);
+  enemyTiles       = LoadTiles(TILE_TYPE_ENEMY, layout.enemiesLayout);
+  coinsTiles       = LoadTiles(TILE_TYPE_COIN, layout.coinsLayout);
+  fgPalmsTiles     = LoadTiles(TILE_TYPE_FG_PALM, layout.fgPalmsLayout);
+  bgPalmsTiles     = LoadTiles(TILE_TYPE_BG_PALM, layout.bgPalmsLayout);
+  constraintTiles  = LoadTiles(TILE_TYPE_CONSTRAINT, layout.constraintLayout);
 }
 
-std::vector<Tile*> SceneTiles::LoadTiles(TileType type, const Utils::Layout& layout) {
-  std::vector<Tile*> tiles;
+TileGroup Tiles::LoadTiles(TileType type, const Utils::TileLayer& layout) {
+  TileGroup tiles;
   for(size_t i = 0; i < layout.size(); ++i) {
     for(size_t j = 0; j < layout[i].size(); ++j) {
       int value = layout[i][j];
@@ -47,48 +69,32 @@ std::vector<Tile*> SceneTiles::LoadTiles(TileType type, const Utils::Layout& lay
   return tiles;
 }
 
-void SceneTiles::UpdateTiles(SDL_State &state, float mapHeight, float cameraX) {
+void Tiles::UpdateTiles(SDL_State &state, float mapHeight, float cameraX) {
   float mapOffsetY = state.windowHeight - mapHeight;
   if(mapOffsetY < 0) mapOffsetY = 0; // hvis vinduet er mindre end map
 
-  for(auto& tile : terrainTiles) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-    tile->update({cameraX, 0.0f});
+  for(auto* group : allGroups) {
+    UpdateTileGroup(*group, mapOffsetY, cameraX);
   }
-  for(auto& tile : crateTiles) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-    tile->update({cameraX, 0.0f});
-  }
-  for(auto& tile : grassTiles) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-    tile->update({cameraX, 0.0f});
+
+}
+
+void Tiles::DrawTiles(SDL_Renderer* renderer) const {
+  for(const auto* group : allGroups) {
+    DrawTileGroup(*group, renderer);
   }
 }
 
-void SceneTiles::DrawTiles(SDL_Renderer* renderer) const {
-  for(const auto& tile : terrainTiles) {
-    tile->draw(renderer);
-  }
-
-  for(const auto& tile : crateTiles) {
-    tile->draw(renderer);
-  }
-
-  for(const auto& tile : grassTiles) {
-    tile->draw(renderer);
-  }
-}
-
-Scene::Scene(unsigned int level, const std::string& name)
+Manager::Manager(unsigned int level, const std::string& name)
   : level(level)
   , name(name)
-  , layout(SceneLayout(level))
-  , tiles(SceneTiles(layout))
+  , layout(Layout(level))
+  , tiles(Tiles(layout))
 {
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
 }
 
-void Scene::update(SDL_State& state) noexcept {
+void Manager::update(SDL_State& state) noexcept {
   bg.update(state);
 
   cameraX = 0.0f;
@@ -99,13 +105,13 @@ void Scene::update(SDL_State& state) noexcept {
   tiles.UpdateTiles(state, mapHeight, cameraX);
 };
 
-void Scene::draw(SDL_Renderer* renderer) const noexcept {
+void Manager::draw(SDL_Renderer* renderer) const noexcept {
   bg.render(renderer);
 
   tiles.DrawTiles(renderer);
 };
 
-void Scene::handleInput(const SDL_Event &event, float deltaTime) noexcept {
+void Manager::handleInput(const SDL_Event &event, float deltaTime) noexcept {
   if(event.type == SDL_EVENT_KEY_DOWN) {
       if(event.key.key == SDLK_RIGHT) {
           cameraX += scrollSpeed * deltaTime; // scroll til højre
@@ -115,4 +121,6 @@ void Scene::handleInput(const SDL_Event &event, float deltaTime) noexcept {
   }
 }
 
-void Scene::saveScene(const std::filesystem::path& path) {};
+void Manager::saveScene(const std::filesystem::path& path) {};
+
+};
