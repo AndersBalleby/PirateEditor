@@ -84,9 +84,10 @@ int main(void) {
       SDL_RenderLine(sdl.getRenderer(), 0, j + mapOffsetY, sdl.getState().windowWidth, j + mapOffsetY);
     }
 
+    // Der er nogle alignment issues her med kameraet ift. markeringen, men er ikke sikker på om jeg kan fikse det.
     if(worldMouseY >= 64.0f) {
-      SDL_SetRenderDrawColor(sdl.getRenderer(), 50, 110, 200, 255);
-      SDL_FRect rect = {tileX * TILE_SIZE - sdl.getState().cameraPos.x + 0.5f, tileY * TILE_SIZE + mapOffsetY, TILE_SIZE + 0.5f, TILE_SIZE + 1.0f};
+      SDL_SetRenderDrawColor(sdl.getRenderer(), 30, 150, 255, 255);
+      SDL_FRect rect = {roundf(tileX * TILE_SIZE - sdl.getState().cameraPos.x), tileY * TILE_SIZE + mapOffsetY, TILE_SIZE + 1.0f, TILE_SIZE + 1.0f};
       SDL_RenderRect(sdl.getRenderer(), &rect);
     }
 
