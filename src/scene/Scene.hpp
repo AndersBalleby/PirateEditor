@@ -2,7 +2,6 @@
 
 #include <array>
 #include <string>
-#include <format>
 #include <filesystem>
 #include <vector>
 
@@ -76,13 +75,11 @@ class Manager {
 
     void update(SDL_State& state) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
-    void handleInput(const SDL_Event& event, float deltaTime) noexcept;
 
     void saveScene(const std::filesystem::path& path);
 
   private:
     // Camera - måske lave dette som en class på et tidspunkt
-    float cameraX = 0.0f;
     const float scrollSpeed = 750.0f;
 
     std::string name;

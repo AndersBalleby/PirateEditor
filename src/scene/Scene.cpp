@@ -97,12 +97,13 @@ Manager::Manager(unsigned int level, const std::string& name)
 void Manager::update(SDL_State& state) noexcept {
   bg.update(state);
 
-  cameraX = 0.0f;
-  if(state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) cameraX += scrollSpeed * state.deltaTime;
-  if(state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) cameraX -= scrollSpeed * state.deltaTime;
+  state.cameraX = 0.0f;
+  state.cameraY = 0.0f;
+  if(state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) state.cameraX += scrollSpeed * state.deltaTime;
+  if(state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) state.cameraX -= scrollSpeed * state.deltaTime;
 
   float mapHeight = layout.terrainLayout.size() * TILE_SIZE;
-  tiles.UpdateTiles(state, mapHeight, cameraX);
+  tiles.UpdateTiles(state, mapHeight, state.cameraX);
 };
 
 void Manager::draw(SDL_Renderer* renderer) const noexcept {
@@ -111,15 +112,6 @@ void Manager::draw(SDL_Renderer* renderer) const noexcept {
   tiles.DrawTiles(renderer);
 };
 
-void Manager::handleInput(const SDL_Event &event, float deltaTime) noexcept {
-  if(event.type == SDL_EVENT_KEY_DOWN) {
-      if(event.key.key == SDLK_RIGHT) {
-          cameraX += scrollSpeed * deltaTime; // scroll til højre
-      } else if(event.key.key == SDLK_LEFT) {
-          cameraX -= scrollSpeed * deltaTime; // scroll til venstre
-      }
-  }
-}
 
 void Manager::saveScene(const std::filesystem::path& path) {};
 

@@ -1,4 +1,9 @@
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_oldnames.h"
+#include "SDL3/SDL_render.h"
+#include "core/ResourceManager.hpp"
+#include "logging/Logger.hpp"
 #include "scene/Background.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
@@ -30,6 +35,10 @@ int main(void) {
   uint64_t last = 0;
   double deltaTime = 0.0;
 
+  float mouseX, mouseY;
+  float mapHeight = 704.0f;
+  float mapOffsetY = 0.0f;
+  float testX = 100.0f;
   while(sdl.isRunning()) {
     // Opdater deltaTime
     last = now;
@@ -49,11 +58,46 @@ int main(void) {
     // Gør rendering klar
     sdl.clear();
 
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    float worldMouseX = mouseX - testX - 28.0f;
+    float worldMouseY = mouseY - mapOffsetY;
+
+    int tileX = (int) std::floor(worldMouseX / TILE_SIZE);
+    int tileY = (int) std::floor(worldMouseY / TILE_SIZE);
+
+    Log::Info("Mouse position: ({}, {})", tileX, tileY);
     // Kør et editor loop
     editor.run(sdl.getState());
 
+    mapOffsetY = sdl.getState().windowHeight - mapHeight;
+    if(mapOffsetY < 0) mapOffsetY = 0; // hvis vinduet er mindre end map
+
+    //tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+
+    //dstRect.x -= offset.x;
+    //dstRect.y -= offset.y;
+    //
+    testX -= sdl.getState().cameraX;
+
+    SDL_SetRenderDrawColor(sdl.getRenderer(), 150, 170, 190, 255);
+
+    // Af en eller anden grund skal der være et offset på 28 for at det passer med x værdierne?
+    for(int i = -4965; i <= sdl.getState().windowWidth + 10000; i += TILE_SIZE) {
+      SDL_RenderLine(sdl.getRenderer(), i + testX, 0, i + testX, sdl.getState().windowHeight);
+    }
+
+    for(int j = 0; j <= sdl.getState().windowHeight; j += TILE_SIZE) {
+      SDL_RenderLine(sdl.getRenderer(), 0, j + mapOffsetY, sdl.getState().windowWidth, j + mapOffsetY);
+    }
+
+    SDL_SetRenderDrawColor(sdl.getRenderer(), 90, 140, 220, 255);
+    SDL_FRect rect = {tileX * TILE_SIZE + testX + 28.0f - 0.5f, tileY * TILE_SIZE + mapOffsetY, TILE_SIZE + 0.5f, TILE_SIZE + 0.5f};
+    SDL_RenderRect(sdl.getRenderer(), &rect);
+
     // fpsCounter.update håndterer både update og draw
     fpsCounter.update(sdl.getState());
+
     sdl.present();
   }
 
