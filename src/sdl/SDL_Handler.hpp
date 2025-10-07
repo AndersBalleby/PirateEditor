@@ -23,7 +23,7 @@ struct SDL_State {
     float         windowHeight = 0.0f;
     float         windowWidth = 0.0f;
     float         cameraX = 0.0f;
-    float         cameraY = 0.0f;
+    Vec2<float>   cameraPos = {0.0f, 0.0f};
     const bool* keyState;
 
     void tickDeltaTime(uint64_t now, uint64_t last);

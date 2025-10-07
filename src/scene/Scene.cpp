@@ -98,9 +98,13 @@ void Manager::update(SDL_State& state) noexcept {
   bg.update(state);
 
   state.cameraX = 0.0f;
-  state.cameraY = 0.0f;
-  if(state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) state.cameraX += scrollSpeed * state.deltaTime;
-  if(state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) state.cameraX -= scrollSpeed * state.deltaTime;
+  if((state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) && state.cameraPos.x < 3072) {
+    state.cameraX += scrollSpeed * state.deltaTime;
+  }
+
+  if((state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) && state.cameraPos.x > -512) {
+    state.cameraX -= scrollSpeed * state.deltaTime;
+  }
 
   float mapHeight = layout.terrainLayout.size() * TILE_SIZE;
   tiles.UpdateTiles(state, mapHeight, state.cameraX);
