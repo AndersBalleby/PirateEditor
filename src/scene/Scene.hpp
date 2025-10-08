@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <filesystem>
+#include <unordered_map>
 #include <vector>
 
 #include "logging/Logger.hpp"
@@ -58,9 +59,13 @@ struct Tiles {
     &playerSetupTiles
   };
 
-  static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout);
+  std::unordered_map<long long, std::vector<Tile*>> tileLookup;
+  static inline long long makeTileKey(int x, int y);
+
+  static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup);
   void DrawTiles(SDL_Renderer* renderer) const;
   void UpdateTiles(SDL_State& state, float mapHeight, float cameraX);
+  void RemoveTile(int gridX, int gridY);
 
   explicit Tiles(const Layout& layout);
 };
@@ -76,7 +81,9 @@ class Manager {
     void update(SDL_State& state) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
 
+    void removeTileAt(int gridX, int gridY);
     void saveScene(const std::filesystem::path& path);
+
 
   private:
     // Camera - måske lave dette som en class på et tidspunkt
