@@ -1,4 +1,5 @@
 #include "SDL_Handler.hpp"
+#include "SDL3/SDL_mouse.h"
 
 SDL_State SDL_Handler::state;
 

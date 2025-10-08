@@ -92,27 +92,42 @@ void Tiles::DrawTiles(SDL_Renderer* renderer) const {
   }
 }
 
-void Tiles::RemoveTile(int gridX, int gridY) {
-  long long key = makeTileKey(gridX, gridY);
-  auto it = tileLookup.find(key);
-  if(it == tileLookup.end()) return;
+void Tiles::RemoveTile(int gridX, int gridY, bool allTiles) {
+    long long key = makeTileKey(gridX, gridY);
+    auto it = tileLookup.find(key);
+    if (it == tileLookup.end()) return;
 
-  auto& tilesAtPos = it->second;
-  if(tilesAtPos.empty()) return;
+    auto& tilesAtPos = it->second;
+    if (tilesAtPos.empty()) return;
 
-  // Fjern fra bagerste
-  Tile* target = tilesAtPos.back();
-  tilesAtPos.pop_back();
+    if (allTiles) {
+        // Fjern alle tiles på denne position fra ALLE grupper
+        for (Tile* tile : tilesAtPos) {
+            for (auto* group : allGroups) {
+                auto& g = *group;
+                g.erase(std::remove(g.begin(), g.end(), tile), g.end());
+            }
+        }
 
-  for(auto* group : allGroups) {
-    auto& g = *group;
-    g.erase(std::remove(g.begin(), g.end(), target), g.end());
-  }
+        // Fjern entry helt fra lookup-tabellen
+        tileLookup.erase(it);
+    }
+    else {
+        // Kun fjern den øverste tile som før
+        Tile* target = tilesAtPos.back();
+        tilesAtPos.pop_back();
 
-  if(tilesAtPos.empty()) {
-    tileLookup.erase(it);
-  }
+        for (auto* group : allGroups) {
+            auto& g = *group;
+            g.erase(std::remove(g.begin(), g.end(), target), g.end());
+        }
+
+        if (tilesAtPos.empty()) {
+            tileLookup.erase(it);
+        }
+    }
 }
+
 
 Manager::Manager(unsigned int level, const std::string& name)
   : level(level)
@@ -147,6 +162,10 @@ void Manager::draw(SDL_Renderer* renderer) const noexcept {
 
 void Manager::removeTileAt(int gridX, int gridY) {
   tiles.RemoveTile(gridX, gridY);
+}
+
+void Manager::removeLayerTiles(int gridX, int gridY) {
+  tiles.RemoveTile(gridX, gridY, true);
 }
 
 void Manager::saveScene(const std::filesystem::path& path) {};

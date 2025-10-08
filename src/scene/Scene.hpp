@@ -65,7 +65,7 @@ struct Tiles {
   static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup);
   void DrawTiles(SDL_Renderer* renderer) const;
   void UpdateTiles(SDL_State& state, float mapHeight, float cameraX);
-  void RemoveTile(int gridX, int gridY);
+  void RemoveTile(int gridX, int gridY, bool allTiles = false);
 
   explicit Tiles(const Layout& layout);
 };
@@ -80,10 +80,10 @@ class Manager {
 
     void update(SDL_State& state) noexcept;
     void draw(SDL_Renderer* renderer) const noexcept;
-
-    void removeTileAt(int gridX, int gridY);
     void saveScene(const std::filesystem::path& path);
 
+    void removeTileAt(int gridX, int gridY);
+    void removeLayerTiles(int gridX, int gridY);
 
   private:
     // Camera - måske lave dette som en class på et tidspunkt
