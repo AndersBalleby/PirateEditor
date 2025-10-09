@@ -1,5 +1,7 @@
 #include "SDL_Handler.hpp"
 #include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_render.h"
+#include "ui/TextHandler.hpp"
 
 SDL_State SDL_Handler::state;
 
@@ -16,6 +18,7 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   }
 
   state.renderer = SDL_CreateRenderer(state.window, nullptr);
+  SDL_SetRenderVSync(state.renderer, -1);
   if(!state.renderer) {
     Log::Critical("Kunne ikke oprette renderer");
     return;
@@ -26,7 +29,7 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
-  if(!(state.font = loadFont("resources/ui/ARCADEPI.TTF", 20))) {
+  if(!UI::Text::init(state.renderer, "resources/ui/ARCADEPI.TTF", 20)) {
     Log::Critical("Fejl ved indlæsning af font");
     return;
   }
@@ -72,7 +75,7 @@ void SDL_Handler::cleanup() {
 
   if(state.renderer) SDL_DestroyRenderer(state.renderer);
   if(state.window)   SDL_DestroyWindow(state.window);
-  if(state.font)     TTF_CloseFont(state.font);
+  UI::Text::cleanup();
 
   TTF_Quit();
   SDL_Quit();
@@ -95,9 +98,6 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
   return state.renderer;
 }
 
-TTF_Font* SDL_Handler::getFont() const {
-  return state.font;
-}
 
 [[nodiscard]] SDL_Texture* SDL_Handler::loadTexture(const std::string& path) {
   SDL_Surface* surf = IMG_Load(path.c_str());
@@ -110,16 +110,6 @@ TTF_Font* SDL_Handler::getFont() const {
   SDL_DestroySurface(surf);
 
   return tex;
-}
-
-[[nodiscard]] TTF_Font* SDL_Handler::loadFont(const std::string& path, size_t size) {
-  TTF_Font* font = TTF_OpenFont(path.c_str(), size);
-  if(!font) {
-    Log::Error("TTF_OpenFont fejl");
-    return nullptr;
-  }
-
-  return font;
 }
 
 SDL_State& SDL_Handler::getState() {

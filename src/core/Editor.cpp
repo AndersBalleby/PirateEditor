@@ -12,7 +12,6 @@ Editor::Editor()
   Log::Info("Initialiserer editor");
 }
 
-
 void Editor::drawGridLines(SDL_State& state) {
     auto mouseState = SDL_GetMouseState(&mouseX, &mouseY);
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "SDL3_ttf/SDL_ttf.h"
 #include "logging/Logger.hpp"
 #include "io/utils.hpp"
 #include "math/vec.hpp"

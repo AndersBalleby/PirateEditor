@@ -10,12 +10,11 @@
 #include "io/utils.hpp"
 #include "math/vec.hpp"
 #include "ui/FPS_Counter.hpp"
+#include "ui/TextHandler.hpp"
 
 int main(void) {
-  // Sørg for at loggeren er initialiseret
   Log::Init();
 
-  // Opret vindue
   const int WINDOW_WIDTH = 1280;
   const int WINDOW_HEIGHT = 800;
   SDL_Handler sdl({
@@ -24,40 +23,43 @@ int main(void) {
     .height = WINDOW_HEIGHT
   });
 
-  // Editor
   Editor editor;
+  FPS_Counter fpsCounter; // Hvis du bruger den senere
 
-  // FPS Counter
-  FPS_Counter fpsCounter = FPS_Counter();
-
-  // DeltaTime
-  uint64_t now = SDL_GetTicks();
-  uint64_t last = 0;
+  // Tid målt i millisekunder
+  uint64_t lastTime = SDL_GetTicks();
   double deltaTime = 0.0;
-  while(sdl.isRunning()) {
-    // Opdater deltaTime
-    last = now;
-    now = SDL_GetTicks();
-    sdl.getState().tickDeltaTime(now, last);
+  float fps = 0.0f;
 
-    // Håndter events
+  while (sdl.isRunning()) {
+    // --- Opdater deltaTime ---
+    uint64_t now = SDL_GetTicks();
+    deltaTime = (now - lastTime) / 1000.0; // sekunder
+    sdl.getState().tickDeltaTime(now, lastTime);
+    lastTime = now;
+
+    // --- Event håndtering ---
     SDL_Event event;
-    while(SDL_PollEvent(&event)) {
-      if(event.type == SDL_EVENT_QUIT) return 0;
-      if(event.type == SDL_EVENT_WINDOW_RESIZED) {
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_EVENT_QUIT)
+        return 0;
+      if (event.type == SDL_EVENT_WINDOW_RESIZED) {
         sdl.getState().windowWidth = event.window.data1;
         sdl.getState().windowHeight = event.window.data2;
       }
     }
 
-    // Gør rendering klar
+    // --- Rendering ---
     sdl.clear();
 
-    // Kør et editor loop
     editor.run(sdl.getState());
 
-    // fpsCounter.update håndterer både update og draw
-    fpsCounter.update(sdl.getState());
+    // FPS beregnet ud fra deltaTime
+    if (deltaTime > 0.0)
+      fps = 1.0f / static_cast<float>(deltaTime);
+
+    // Tegn FPS tekst (opdateres hver frame)
+    UI::Text::displayText("FPS: " + std::to_string(static_cast<int>(fps)), Vec2<float>(10, 10));
 
     sdl.present();
   }

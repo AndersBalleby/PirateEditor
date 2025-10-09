@@ -1,8 +1,8 @@
 #include "FPS_Counter.hpp"
+#include "ui/TextHandler.hpp"
 
 FPS_Counter::FPS_Counter()
- : texture(nullptr)
- , now(SDL_GetTicks())
+ : now(SDL_GetTicks())
  , last(0)
  , fpsTimer(0.0)
  , fps(0)
@@ -14,36 +14,16 @@ FPS_Counter::FPS_Counter()
 void FPS_Counter::update(SDL_State& state) noexcept {
 
   frameCount++;
-  if(fpsTimer >= 1.0) {
-    fps = frameCount;
-    frameCount = 0;
-    fpsTimer = 0.0;
+  fpsTimer += state.deltaTime; // deltaTime = tid siden sidste frame i sekunder
 
-    updateText(state.renderer, state.font);
+  if (fpsTimer >= 1.0) { // opdater FPS én gang per sekund
+      fps = frameCount;   // antal frames på 1 sekund = FPS
+      frameCount = 0;     // nulstil frame tæller
+      fpsTimer -= 1.0;    // træk 1 sekund fra timeren (bevarer evt. overskydende tid)
   }
 
-  // Draw texture
-  if(texture) {
-    SDL_RenderTexture(state.renderer, texture, nullptr, &rect);
-  }
+  // Vis FPS
+  UI::Text::displayText("FPS: " + std::to_string(int(fps)), Vec2<float>(10, 10));
 
   fpsTimer += state.deltaTime;
-}
-
-void FPS_Counter::updateText(SDL_Renderer* renderer, TTF_Font* font) noexcept {
-  if(texture) SDL_DestroyTexture(texture);
-
-  std::string fpsText = "FPS: " + std::to_string(fps);
-  SDL_Color white = {255, 255, 255, 255};
-  SDL_Surface* textSurface = TTF_RenderText_Blended(font, fpsText.c_str(), fpsText.size(), white);
-  texture = SDL_CreateTextureFromSurface(renderer, textSurface);
-  rect = {10.0, 10.0, (float) textSurface->w, (float) textSurface->h};
-
-  SDL_DestroySurface(textSurface);
-}
-
-FPS_Counter::~FPS_Counter() {
-  if(texture) {
-    SDL_DestroyTexture(texture);
-  }
 }

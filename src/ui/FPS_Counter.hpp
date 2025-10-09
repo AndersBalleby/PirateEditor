@@ -12,11 +12,9 @@
 class FPS_Counter {
 public:
     FPS_Counter();
-    ~FPS_Counter();
+    ~FPS_Counter() = default;
     void update(SDL_State& state) noexcept;
 private:
-    void updateText(SDL_Renderer* renderer, TTF_Font* font) noexcept;
-    SDL_Texture* texture;
     SDL_FRect rect;
     std::uint64_t now;
     std::uint64_t last;

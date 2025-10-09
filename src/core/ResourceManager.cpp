@@ -1,4 +1,5 @@
 #include "ResourceManager.hpp"
+#include "SDL3_ttf/SDL_ttf.h"
 #include "logging/Logger.hpp"
 
 SDL_Renderer* ResourceManager::s_renderer = nullptr;
@@ -84,6 +85,7 @@ void ResourceManager::update(float deltaTime) {
     anim->tick(deltaTime);
   }
 }
+
 
 Animation::Animation(const std::string& animID, const std::filesystem::path& folderPath) {
   std::vector<std::filesystem::path> files = Utils::getAnimationFiles(folderPath);
