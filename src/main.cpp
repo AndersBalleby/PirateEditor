@@ -61,8 +61,7 @@ int main(void) {
     if (deltaTime > 0.0)
       fps = 1.0f / static_cast<float>(deltaTime);
 
-    // Tegn FPS tekst (opdateres hver frame)
-    UI::Text::displayText("FPS: " + std::to_string(static_cast<int>(fps)), Vec2<float>(10, 10));
+    fpsCounter.update(sdl.getState());
 
     sdl.present();
   }

@@ -18,7 +18,7 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   }
 
   state.renderer = SDL_CreateRenderer(state.window, nullptr);
-  SDL_SetRenderVSync(state.renderer, 1);
+  SDL_SetRenderVSync(state.renderer, -1);
   if(!state.renderer) {
     Log::Critical("Kunne ikke oprette renderer");
     return;
