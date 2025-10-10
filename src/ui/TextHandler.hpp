@@ -54,7 +54,7 @@ class Text {
   private:
     Text() = default;
 
-    static std::vector<ColoredSegment> parseColoredText(const std::string& input, SDL_Color defaultColor = {255, 255, 255, 255});
+    static std::vector<ColoredSegment> parseColoredText(const std::string& input, SDL_Color defaultColor = {128, 128, 128, 255});
 
     static SDL_Renderer* s_renderer;
     static TTF_Font* s_font;

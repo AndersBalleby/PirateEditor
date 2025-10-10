@@ -9,15 +9,17 @@ namespace UI {
   TTF_Font* Text::s_font = nullptr;
   std::unordered_map<TextKey, CachedText, TextKeyHash> Text::s_cache;
   std::unordered_map<std::string, SDL_Color> Text::s_colorMap = {
-      {"white", {255, 255, 255, 255}},
-      {"red",   {255, 0, 0, 255}},
-      {"green", {0, 255, 0, 255}},
-      {"blue",  {0, 0, 255, 255}},
-      {"yellow",{255, 255, 0, 255}},
-      {"cyan",  {0, 255, 255, 255}},
-      {"magenta",{255, 0, 255, 255}},
-      {"gray",  {128, 128, 128, 255}}
+      {"white",   {200, 200, 200, 255}},
+      {"red",     {180, 0, 0, 255}},
+      {"green",   {0, 150, 0, 255}},
+      {"blue",    {0, 0, 180, 255}},
+      {"yellow",  {180, 180, 0, 255}},
+      {"cyan",    {0, 150, 150, 255}},
+      {"magenta", {150, 0, 150, 255}},
+      {"gray",    {80, 80, 80, 255}},
+      {"black",   {0, 0, 0, 255}}
   };
+
 
   std::vector<ColoredSegment> Text::parseColoredText(const std::string& input, SDL_Color defaultColor) {
     std::vector<ColoredSegment> segments;
