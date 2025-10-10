@@ -1,10 +1,13 @@
 #pragma once
 
+#include <string>
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "logging/Logger.hpp"
 #include "scene/Scene.hpp"
 #include "sdl/SDL_Handler.hpp"
+#include "ui/TextHandler.hpp"
 
 class Editor {
   public:
@@ -14,6 +17,7 @@ class Editor {
     void run(SDL_State& state);
     void update(SDL_State& state);
     void draw(SDL_State& state);
+    void handleInput(SDL_Event& event);
 
 
   private:
@@ -27,6 +31,7 @@ class Editor {
     float mouseX = 0.0f;
     float mouseY = 0.0f;
     float mapOffsetY = 0.0f;
+    bool editMode = true;
 
     bool isSelecting = false;
     bool wasMouseDown = false;

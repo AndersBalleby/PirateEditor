@@ -47,6 +47,9 @@ int main(void) {
         sdl.getState().windowWidth = event.window.data1;
         sdl.getState().windowHeight = event.window.data2;
       }
+
+      // Håndterer input i editor
+      editor.handleInput(event);
     }
 
     // --- Rendering ---

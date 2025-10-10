@@ -13,6 +13,11 @@ namespace UI {
 
 using Clock = std::chrono::steady_clock;
 
+struct ColoredSegment {
+    std::string text;
+    SDL_Color color;
+};
+
 struct CachedText {
   SDL_Texture* texture;
   Clock::time_point lastUsed;
@@ -43,15 +48,19 @@ class Text {
   public:
     static bool init(SDL_Renderer* renderer, const std::string& fontPath, float fontSize);
     static void cleanup();
+
     static void displayText(const std::string& text, Vec2<float> position, SDL_Color color = {255, 255, 255, 255});
     static void trimUnusedCache(double maxAgeSeconds = 5.0);
   private:
     Text() = default;
 
+    static std::vector<ColoredSegment> parseColoredText(const std::string& input, SDL_Color defaultColor = {255, 255, 255, 255});
+
     static SDL_Renderer* s_renderer;
     static TTF_Font* s_font;
 
     static std::unordered_map<TextKey, CachedText, TextKeyHash> s_cache;
+    static std::unordered_map<std::string, SDL_Color> s_colorMap;
 };
 
 };

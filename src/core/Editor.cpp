@@ -1,4 +1,6 @@
 #include "Editor.hpp"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_scancode.h"
@@ -29,6 +31,7 @@ void Editor::drawGridLines(SDL_State& state) {
     // TODO: Flyt magiske tal ud i en Camera-klasse senere
     const int startX = -64 * 8;
     const int endX = state.windowWidth + 64 * 47;
+    if(!editMode) return;
 
     for (int x = startX; x <= endX; x += TILE_SIZE) {
         SDL_RenderLine(state.renderer, x - state.cameraPos.x, TILE_SIZE + mapOffsetY, x - state.cameraPos.x, state.windowHeight);
@@ -102,6 +105,14 @@ void Editor::drawGridLines(SDL_State& state) {
     }
 }
 
+void Editor::handleInput(SDL_Event &event) {
+  if(event.type == SDL_EVENT_KEY_DOWN) {
+    if(event.key.key == SDLK_SPACE) {
+      editMode = !editMode;
+    }
+  }
+}
+
 void Editor::updateSelectedTiles(SDL_State& state) {
   selectedTiles.clear();
 
@@ -131,6 +142,9 @@ void Editor::update(SDL_State& state) {
 void Editor::draw(SDL_State& state) {
   scene_manager.draw(state.renderer);
   drawGridLines(state);
+
+  std::string displayText = std::string("Edit mode: ") + (editMode ? "{green}ON" : "{red}OFF");
+  UI::Text::displayText(displayText, Vec2<float> {10.0f, 30.0f});
 }
 
 void Editor::run(SDL_State& state) {
