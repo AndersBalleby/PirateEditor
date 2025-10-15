@@ -31,6 +31,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3_ttf)
 
+# SDL3_mixer
+FetchContent_Declare(
+  SDL3_mixer
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+  GIT_TAG main
+)
+FetchContent_MakeAvailable(SDL3_mixer)
+
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
 add_executable(PirateEditor ${SRC_FILES})
@@ -40,10 +48,10 @@ target_link_libraries(PirateEditor
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_ttf::SDL3_ttf
+        SDL3_mixer::SDL3_mixer
 )
 
 target_include_directories(PirateEditor
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-

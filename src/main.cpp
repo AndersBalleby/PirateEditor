@@ -1,16 +1,12 @@
+#include "SDL3/SDL_audio.h"
 #include "SDL3/SDL_events.h"
-#include "SDL3/SDL_mouse.h"
-#include "SDL3/SDL_oldnames.h"
-#include "SDL3/SDL_render.h"
-#include "core/ResourceManager.hpp"
+#include "SDL3/SDL_log.h"
+#include "core/Audio.hpp"
 #include "logging/Logger.hpp"
-#include "scene/Background.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
-#include "io/utils.hpp"
-#include "math/vec.hpp"
 #include "ui/FPS_Counter.hpp"
-#include "ui/TextHandler.hpp"
+#include <SDL3_mixer/SDL_mixer.h>
 
 int main(void) {
   Log::Init();
@@ -24,7 +20,7 @@ int main(void) {
   });
 
   Editor editor;
-  FPS_Counter fpsCounter; // Hvis du bruger den senere
+  FPS_Counter fpsCounter;
 
   // Tid målt i millisekunder
   uint64_t lastTime = SDL_GetTicks();
@@ -64,6 +60,8 @@ int main(void) {
     fpsCounter.update(sdl.getState());
 
     sdl.present();
+
+    sdl.getAudioHandler().playTrack();
   }
 
   return 0;

@@ -7,6 +7,7 @@
 #include "SDL3/SDL_keyboard.h"
 #include "logging/Logger.hpp"
 #include "core/ResourceManager.hpp"
+#include "core/Audio.hpp"
 
 struct WindowConfig {
   std::string title;
@@ -17,6 +18,7 @@ struct WindowConfig {
 struct SDL_State {
     SDL_Window*   window   = nullptr;
     SDL_Renderer* renderer = nullptr;
+    AudioHandler  audioHandler;
     bool          running  = false;
     float         deltaTime = 0.0f;
     float         windowHeight = 0.0f;
@@ -38,6 +40,7 @@ class SDL_Handler {
     void present();
 
     static SDL_State& getState();
+    AudioHandler& getAudioHandler();
     SDL_Renderer* getRenderer() const;
     SDL_Texture*  loadTexture(const std::string& path);
 

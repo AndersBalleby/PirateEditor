@@ -34,6 +34,11 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
+  if(!state.audioHandler.isInitialized()) {
+    Log::Critical("Kunne ikke oprette lyd");
+    return;
+  }
+
   // Gør at textures ikke er så dårlig opløsning
   SDL_SetDefaultTextureScaleMode(state.renderer, SDL_SCALEMODE_NEAREST);
 
@@ -54,7 +59,7 @@ SDL_Handler::~SDL_Handler() {
 }
 
 bool SDL_Handler::initSDL() {
-  if(!SDL_Init(SDL_INIT_VIDEO)) {
+  if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     Log::Critical("SDL_Init fejl");
     return false;
   }
@@ -70,8 +75,8 @@ bool SDL_Handler::initSDL() {
 void SDL_Handler::cleanup() {
   Log::Info("Afslutter alle subsystems...");
 
-  // Alle resources skal cleares (frigøres) før renderer og window slettes
   ResourceManager::clear();
+  getAudioHandler().destroy();
 
   if(state.renderer) SDL_DestroyRenderer(state.renderer);
   if(state.window)   SDL_DestroyWindow(state.window);
@@ -92,6 +97,10 @@ void SDL_Handler::clear() {
 
 void SDL_Handler::present() {
   SDL_RenderPresent(state.renderer);
+}
+
+AudioHandler& SDL_Handler::getAudioHandler() {
+  return state.audioHandler;
 }
 
 SDL_Renderer* SDL_Handler::getRenderer() const {
