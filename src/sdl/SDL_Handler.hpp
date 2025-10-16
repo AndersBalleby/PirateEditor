@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(_WIN32) || defined(__linux__)
-
 #include <string>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -21,7 +19,11 @@ struct WindowConfig {
 struct SDL_State {
     SDL_Window*   window   = nullptr;
     SDL_Renderer* renderer = nullptr;
+
+    #if defined(_WIN32) || defined(__linux__)
     AudioHandler  audioHandler;
+    #endif
+
     bool          running  = false;
     float         deltaTime = 0.0f;
     float         windowHeight = 0.0f;
@@ -43,7 +45,9 @@ class SDL_Handler {
     void present();
 
     static SDL_State& getState();
+    #if defined(_WIN32) || defined(__linux__)
     AudioHandler& getAudioHandler();
+    #endif
     SDL_Renderer* getRenderer() const;
     SDL_Texture*  loadTexture(const std::string& path);
 
@@ -56,5 +60,3 @@ class SDL_Handler {
 
     static SDL_State state;
 };
-
-#endif

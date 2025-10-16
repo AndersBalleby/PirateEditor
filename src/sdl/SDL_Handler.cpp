@@ -1,5 +1,3 @@
-#if defined(_WIN32) || defined(__linux__)
-
 #include "SDL_Handler.hpp"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_render.h"
@@ -36,10 +34,12 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
+  #if defined(_WIN32) || defined(__linux__)
   if(!state.audioHandler.isInitialized()) {
     Log::Critical("Kunne ikke oprette lyd");
     return;
   }
+  #endif
 
   // Gør at textures ikke er så dårlig opløsning
   SDL_SetDefaultTextureScaleMode(state.renderer, SDL_SCALEMODE_NEAREST);
@@ -78,7 +78,9 @@ void SDL_Handler::cleanup() {
   Log::Info("Afslutter alle subsystems...");
 
   ResourceManager::clear();
+  #if defined(_WIN32) || defined(__linux__)
   getAudioHandler().destroy();
+  #endif
 
   if(state.renderer) SDL_DestroyRenderer(state.renderer);
   if(state.window)   SDL_DestroyWindow(state.window);
@@ -101,9 +103,11 @@ void SDL_Handler::present() {
   SDL_RenderPresent(state.renderer);
 }
 
+#if defined(_WIN32) || defined(__linux__)
 AudioHandler& SDL_Handler::getAudioHandler() {
   return state.audioHandler;
 }
+#endif
 
 SDL_Renderer* SDL_Handler::getRenderer() const {
   return state.renderer;
@@ -126,6 +130,3 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
 SDL_State& SDL_Handler::getState() {
   return state;
 }
-
-
-#endif

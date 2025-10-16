@@ -1,3 +1,5 @@
+#if defined(_WIN32) || defined(__linux__)
+
 #pragma once
 
 #include <SDL3_mixer/SDL_mixer.h>
@@ -21,3 +23,5 @@ private:
   float master_gain = 0.03f;
   bool initialized;
 };
+
+#endif

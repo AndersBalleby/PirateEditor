@@ -1,3 +1,5 @@
+#if defined(_WIN32) || defined(__linux__)
+
 #include "Audio.hpp"
 #include "SDL3/SDL_audio.h"
 #include "SDL3_mixer/SDL_mixer.h"
@@ -58,3 +60,5 @@ void AudioHandler::playTrack() const {
 bool AudioHandler::isInitialized() const {
   return initialized;
 }
+
+#endif
