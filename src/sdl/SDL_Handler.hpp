@@ -1,4 +1,7 @@
 #pragma once
+
+#if defined(_WIN32) || defined(__linux__)
+
 #include <string>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -53,3 +56,5 @@ class SDL_Handler {
 
     static SDL_State state;
 };
+
+#endif

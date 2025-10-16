@@ -1,3 +1,5 @@
+#if defined(_WIN32) || defined(__linux__)
+
 #include "SDL_Handler.hpp"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_render.h"
@@ -124,3 +126,6 @@ SDL_Renderer* SDL_Handler::getRenderer() const {
 SDL_State& SDL_Handler::getState() {
   return state;
 }
+
+
+#endif

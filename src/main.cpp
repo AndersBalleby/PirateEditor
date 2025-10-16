@@ -1,12 +1,8 @@
-#include "SDL3/SDL_audio.h"
 #include "SDL3/SDL_events.h"
-#include "SDL3/SDL_log.h"
-#include "core/Audio.hpp"
 #include "logging/Logger.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "core/Editor.hpp"
 #include "ui/FPS_Counter.hpp"
-#include <SDL3_mixer/SDL_mixer.h>
 
 int main(void) {
   Log::Init();
@@ -61,7 +57,9 @@ int main(void) {
 
     sdl.present();
 
-    sdl.getAudioHandler().playTrack();
+    #if defined(_WIN32) || defined(__linux__)
+      sdl.getAudioHandler().playTrack();
+    #endif
   }
 
   return 0;
