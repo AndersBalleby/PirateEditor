@@ -5,6 +5,7 @@
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_scancode.h"
 #include "SDL3/SDL_stdinc.h"
+#include "logging/Logger.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -61,7 +62,7 @@ void Editor::drawGridLines(SDL_State& state) {
         }
     }
 
-    bool leftDown = mouseState & SDL_BUTTON_LMASK;
+    bool leftDown = mouseState & SDL_BUTTON_LMASK & state.keyState[SDL_SCANCODE_LCTRL];
     if(leftDown && !wasMouseDown) {
       isSelecting = true;
       selectionStart = {mouseX, mouseY};

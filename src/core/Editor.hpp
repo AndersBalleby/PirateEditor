@@ -19,7 +19,6 @@ class Editor {
     void draw(SDL_State& state);
     void handleInput(SDL_Event& event);
 
-
   private:
     void drawGridLines(SDL_State& state);
     void updateSelectedTiles(SDL_State& state);

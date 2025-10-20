@@ -60,6 +60,15 @@ inline long long Tiles::makeTileKey(int x, int y) {
   return (static_cast<long long>(x) << 32) | static_cast<unsigned int>(y);
 }
 
+Tile* Tiles::GetTile(int gridX, int gridY) {
+  long long key = makeTileKey(gridX, gridY);
+  auto it = tileLookup.find(key);
+  if(it != tileLookup.end()) {
+    return it->second.front();
+  }
+  return nullptr;
+}
+
 TileGroup Tiles::LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup) {
   TileGroup tiles;
   for(size_t i = 0; i < layout.size(); ++i) {
@@ -109,7 +118,6 @@ void Tiles::RemoveTile(int gridX, int gridY, bool allTiles) {
             }
         }
 
-        // Fjern entry helt fra lookup-tabellen
         tileLookup.erase(it);
     }
     else {
@@ -166,6 +174,10 @@ void Manager::removeTileAt(int gridX, int gridY) {
 
 void Manager::removeLayerTiles(int gridX, int gridY) {
   tiles.RemoveTile(gridX, gridY, true);
+}
+
+Tile* Manager::getTileAt(int gridX, int gridY) {
+  return tiles.GetTile(gridX, gridY);
 }
 
 void Manager::saveScene(const std::filesystem::path& path) {};

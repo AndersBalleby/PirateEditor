@@ -61,6 +61,7 @@ struct Tiles {
 
   std::unordered_map<long long, std::vector<Tile*>> tileLookup;
   static inline long long makeTileKey(int x, int y);
+  Tile* GetTile(int gridX, int gridY);
 
   static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup);
   void DrawTiles(SDL_Renderer* renderer) const;
@@ -84,6 +85,8 @@ class Manager {
 
     void removeTileAt(int gridX, int gridY);
     void removeLayerTiles(int gridX, int gridY);
+
+    Tile* getTileAt(int gridX, int gridY);
 
   private:
     // Camera - måske lave dette som en class på et tidspunkt

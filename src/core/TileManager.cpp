@@ -92,6 +92,10 @@ void Tile::initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2
   this->staticTile = true;
 }
 
+TileType Tile::getType() const {
+  return type;
+}
+
 void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex) {
     if (!tileMapTex) {
         Log::Error("Kunne ikke indlæse tilemap: passerede nullptr i tileMapTex");

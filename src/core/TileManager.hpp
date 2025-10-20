@@ -27,6 +27,8 @@ public:
   void update(Vec2<float> offset);
   void draw(SDL_Renderer* renderer) const;
 
+  TileType getType() const;
+
   SDL_FRect dstRect;
   Vec2<float> position;
   Vec2<float> offset;
