@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "SDL3/SDL_blendmode.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_render.h"
@@ -101,7 +102,11 @@ void Tiles::DrawTiles(SDL_Renderer* renderer) const {
   }
 }
 
-void Tiles::RemoveTile(int gridX, int gridY, bool allTiles) {
+void Tiles::RemoveTile(int gridX, int gridY, int layerIndex)
+{
+    if (layerIndex < 0 || layerIndex >= (int)layerGroups.size())
+        return;
+
     long long key = makeTileKey(gridX, gridY);
     auto it = tileLookup.find(key);
     if (it == tileLookup.end()) return;
@@ -109,31 +114,67 @@ void Tiles::RemoveTile(int gridX, int gridY, bool allTiles) {
     auto& tilesAtPos = it->second;
     if (tilesAtPos.empty()) return;
 
-    if (allTiles) {
-        // Fjern alle tiles på denne position fra ALLE grupper
-        for (Tile* tile : tilesAtPos) {
-            for (auto* group : allGroups) {
-                auto& g = *group;
-                g.erase(std::remove(g.begin(), g.end(), tile), g.end());
+    auto& targetGroups = layerGroups[layerIndex];
+
+    // Alle tiles i layerIndex der matcher positionen
+    std::vector<Tile*> toRemove;
+    for (auto* group : targetGroups) {
+        auto& g = *group;
+        for (auto* tile : g) {
+            if ((int)tile->position.x == gridX && (int)tile->position.y == gridY) {
+                toRemove.push_back(tile);
             }
         }
+    }
 
+    // Fjern fra groups
+    for (auto* group : targetGroups) {
+        auto& g = *group;
+        g.erase(std::remove_if(g.begin(), g.end(), [&](Tile* t) {
+            return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
+        }), g.end());
+    }
+
+    // Fjern fra lookup
+    tilesAtPos.erase(std::remove_if(tilesAtPos.begin(), tilesAtPos.end(),
+        [&](Tile* t) {
+            return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
+        }),
+        tilesAtPos.end());
+
+    if (tilesAtPos.empty())
         tileLookup.erase(it);
-    }
-    else {
-        // Kun fjern den øverste tile som før
-        Tile* target = tilesAtPos.back();
-        tilesAtPos.pop_back();
 
-        for (auto* group : allGroups) {
-            auto& g = *group;
-            g.erase(std::remove(g.begin(), g.end(), target), g.end());
-        }
+    for (auto* t : toRemove)
+        delete t;
+}
 
-        if (tilesAtPos.empty()) {
-            tileLookup.erase(it);
-        }
+
+
+void Tiles::DrawTiles(SDL_Renderer* renderer, int visibleLayer) const {
+  const Uint8 activeAlpha = 255;
+  const Uint8 inactiveAlpha = 80;
+
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+  // Tegn alle layers
+  for (int i = 0; i < (int)layerGroups.size(); ++i) {
+    Uint8 layerAlpha = (i == visibleLayer) ? activeAlpha : inactiveAlpha;
+
+    for (auto* group : layerGroups[i]) {
+      for (auto* tile : *group) {
+        if (!tile->texture) continue;
+
+        Uint8 oldAlpha = 255;
+        SDL_GetTextureAlphaMod(tile->texture, &oldAlpha);
+        SDL_SetTextureAlphaMod(tile->texture, layerAlpha);
+
+        tile->draw(renderer);
+
+        SDL_SetTextureAlphaMod(tile->texture, oldAlpha);
+      }
     }
+  }
 }
 
 
@@ -162,18 +203,18 @@ void Manager::update(SDL_State& state) noexcept {
   tiles.UpdateTiles(state, mapHeight, state.cameraX);
 };
 
-void Manager::draw(SDL_Renderer* renderer) const noexcept {
+void Manager::draw(SDL_Renderer* renderer, int visibleLayer) const noexcept {
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
   bg.render(renderer);
-
-  tiles.DrawTiles(renderer);
+  tiles.DrawTiles(renderer, visibleLayer);
 };
 
-void Manager::removeTileAt(int gridX, int gridY) {
-  tiles.RemoveTile(gridX, gridY);
+void Manager::removeTileAt(int gridX, int gridY, int layerIndex) {
+  tiles.RemoveTile(gridX, gridY, layerIndex);
 }
 
-void Manager::removeLayerTiles(int gridX, int gridY) {
-  tiles.RemoveTile(gridX, gridY, true);
+void Manager::removeLayerTiles(int gridX, int gridY, int layerIndex) {
+  tiles.RemoveTile(gridX, gridY, layerIndex);
 }
 
 Tile* Manager::getTileAt(int gridX, int gridY) {

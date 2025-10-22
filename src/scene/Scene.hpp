@@ -59,14 +59,21 @@ struct Tiles {
     &playerSetupTiles
   };
 
+  // 0 = background, 1 = terrain, 2 = foreground
+  std::array<std::vector<TileGroup*>, 3> layerGroups {
+    { {&bgPalmsTiles},
+    { &terrainTiles, &crateTiles, &grassTiles, &enemyTiles },
+    { &fgPalmsTiles, &coinsTiles, &playerSetupTiles, &constraintTiles }}};
+
   std::unordered_map<long long, std::vector<Tile*>> tileLookup;
   static inline long long makeTileKey(int x, int y);
   Tile* GetTile(int gridX, int gridY);
 
   static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup);
   void DrawTiles(SDL_Renderer* renderer) const;
+  void DrawTiles(SDL_Renderer* renderer, int visibleLayer) const;
   void UpdateTiles(SDL_State& state, float mapHeight, float cameraX);
-  void RemoveTile(int gridX, int gridY, bool allTiles = false);
+  void RemoveTile(int gridX, int gridY, int layerIndex);
 
   explicit Tiles(const Layout& layout);
 };
@@ -80,11 +87,11 @@ class Manager {
     Manager(Manager&&) noexcept = default;
 
     void update(SDL_State& state) noexcept;
-    void draw(SDL_Renderer* renderer) const noexcept;
+    void draw(SDL_Renderer* renderer, int visibleLayer = -1) const noexcept;
     void saveScene(const std::filesystem::path& path);
 
-    void removeTileAt(int gridX, int gridY);
-    void removeLayerTiles(int gridX, int gridY);
+    void removeTileAt(int gridX, int gridY, int layerIndex);
+    void removeLayerTiles(int gridX, int gridY, int layerIndex);
 
     Tile* getTileAt(int gridX, int gridY);
 

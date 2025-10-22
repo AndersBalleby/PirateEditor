@@ -32,6 +32,9 @@ class Editor {
     float mapOffsetY = 0.0f;
     bool editMode = true;
 
+    int currentLayer = 0;
+    const int maxLayers = 3;
+
     bool isSelecting = false;
     bool wasMouseDown = false;
     SDL_FPoint selectionStart{0.0f, 0.0f};

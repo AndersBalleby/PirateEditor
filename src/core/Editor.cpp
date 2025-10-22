@@ -52,14 +52,18 @@ void Editor::drawGridLines(SDL_State& state) {
         };
         SDL_RenderRect(state.renderer, &rect);
 
-        if(state.keyState[SDL_SCANCODE_DELETE] || state.keyState[SDL_SCANCODE_BACKSPACE] || (mouseState & SDL_BUTTON_RMASK)) {
-          for (auto [tx, ty] : selectedTiles) {
-              scene_manager.removeLayerTiles(tx, ty);
-          }
+        if (state.keyState[SDL_SCANCODE_DELETE] ||
+            state.keyState[SDL_SCANCODE_BACKSPACE] ||
+            (mouseState & SDL_BUTTON_RMASK))
+        {
+            for (auto [tx, ty] : selectedTiles) {
+                scene_manager.removeLayerTiles(tx, ty, currentLayer);
+            }
 
-          scene_manager.removeTileAt(tileX, tileY);
-          selectedTiles.clear();
+            scene_manager.removeTileAt(tileX, tileY, currentLayer);
+            selectedTiles.clear();
         }
+
     }
 
     bool leftDown = mouseState & SDL_BUTTON_LMASK & state.keyState[SDL_SCANCODE_LCTRL];
@@ -111,6 +115,14 @@ void Editor::handleInput(SDL_Event &event) {
     if(event.key.key == SDLK_SPACE) {
       editMode = !editMode;
     }
+
+    if(event.key.key == SDLK_UP) {
+      currentLayer = (currentLayer + 1) % maxLayers;
+    }
+
+    if(event.key.key == SDLK_DOWN) {
+      currentLayer = (currentLayer - 1 + maxLayers) % maxLayers;
+    }
   }
 }
 
@@ -140,12 +152,17 @@ void Editor::update(SDL_State& state) {
   scene_manager.update(state);
 }
 
+const std::string layers[] = {"{green}Background", "{green}Terrain", "{green}Foreground"};
+
 void Editor::draw(SDL_State& state) {
-  scene_manager.draw(state.renderer);
+  scene_manager.draw(state.renderer, currentLayer);
   drawGridLines(state);
 
-  std::string displayText = std::string("Edit mode: ") + (editMode ? "{green}ON" : "{red}OFF");
-  UI::Text::displayText(displayText, Vec2<float> {10.0f, 30.0f});
+  std::string editText = std::format("Edit mode: {}", editMode ? "{green}ON" : "{red}OFF");
+  std::string layerText = std::format("Layer: {}", layers[currentLayer]);
+  UI::Text::displayText(editText, Vec2<float> {10.0f, 30.0f});
+  UI::Text::displayText(layerText, Vec2<float> {10.0f, 50.0f});
+
 }
 
 void Editor::run(SDL_State& state) {

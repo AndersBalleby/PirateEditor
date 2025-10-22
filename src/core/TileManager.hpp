@@ -30,6 +30,7 @@ public:
   TileType getType() const;
 
   SDL_FRect dstRect;
+  SDL_Texture* texture;
   Vec2<float> position;
   Vec2<float> offset;
 private:
@@ -38,7 +39,6 @@ private:
   void initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset);
 
   TileType type;
-  SDL_Texture* texture;
   SDL_FRect srcRect;
   bool staticTile;
 };
