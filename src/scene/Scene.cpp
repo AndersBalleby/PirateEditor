@@ -9,19 +9,18 @@
 
 namespace Scene {
 
-  void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
-    for(auto& tile : group) {
-      tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
-      tile->update({cameraX, 0.0f});
-    }
+void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
+  for(auto& tile : group) {
+    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
+    tile->update({cameraX, 0.0f});
   }
+}
 
-  void DrawTileGroup(const TileGroup& group, SDL_Renderer* renderer) {
-    for(auto& tile : group) {
-      tile->draw(renderer);
-    }
+void DrawTileGroup(const TileGroup& group, SDL_Renderer* renderer) {
+  for(auto& tile : group) {
+    tile->draw(renderer);
   }
-
+}
 Layout::Layout(unsigned int level) {
   bgPalmsLayout     = LoadLevelLayout(level, "bg_palms");
   coinsLayout       = LoadLevelLayout(level, "coins");
@@ -102,51 +101,50 @@ void Tiles::DrawTiles(SDL_Renderer* renderer) const {
   }
 }
 
-void Tiles::RemoveTile(int gridX, int gridY, int layerIndex)
-{
-    if (layerIndex < 0 || layerIndex >= (int)layerGroups.size())
-        return;
+void Tiles::RemoveTile(int gridX, int gridY, int layerIndex) {
+  if (layerIndex < 0 || layerIndex >= (int)layerGroups.size())
+    return;
 
-    long long key = makeTileKey(gridX, gridY);
-    auto it = tileLookup.find(key);
-    if (it == tileLookup.end()) return;
+  long long key = makeTileKey(gridX, gridY);
+  auto it = tileLookup.find(key);
+  if (it == tileLookup.end()) return;
 
-    auto& tilesAtPos = it->second;
-    if (tilesAtPos.empty()) return;
+  auto& tilesAtPos = it->second;
+  if (tilesAtPos.empty()) return;
 
-    auto& targetGroups = layerGroups[layerIndex];
+  auto& targetGroups = layerGroups[layerIndex];
 
-    // Alle tiles i layerIndex der matcher positionen
-    std::vector<Tile*> toRemove;
-    for (auto* group : targetGroups) {
-        auto& g = *group;
-        for (auto* tile : g) {
-            if ((int)tile->position.x == gridX && (int)tile->position.y == gridY) {
-                toRemove.push_back(tile);
-            }
-        }
-    }
+  // Alle tiles i layerIndex der matcher positionen
+  std::vector<Tile*> toRemove;
+  for (auto* group : targetGroups) {
+      auto& g = *group;
+      for (auto* tile : g) {
+          if ((int)tile->position.x == gridX && (int)tile->position.y == gridY) {
+              toRemove.push_back(tile);
+          }
+      }
+  }
 
-    // Fjern fra groups
-    for (auto* group : targetGroups) {
-        auto& g = *group;
-        g.erase(std::remove_if(g.begin(), g.end(), [&](Tile* t) {
-            return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
-        }), g.end());
-    }
+  // Fjern fra groups
+  for (auto* group : targetGroups) {
+      auto& g = *group;
+      g.erase(std::remove_if(g.begin(), g.end(), [&](Tile* t) {
+          return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
+      }), g.end());
+  }
 
-    // Fjern fra lookup
-    tilesAtPos.erase(std::remove_if(tilesAtPos.begin(), tilesAtPos.end(),
-        [&](Tile* t) {
-            return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
-        }),
-        tilesAtPos.end());
+  // Fjern fra lookup
+  tilesAtPos.erase(std::remove_if(tilesAtPos.begin(), tilesAtPos.end(),
+    [&](Tile* t) {
+      return std::find(toRemove.begin(), toRemove.end(), t) != toRemove.end();
+    }),
+    tilesAtPos.end());
 
-    if (tilesAtPos.empty())
-        tileLookup.erase(it);
+  if (tilesAtPos.empty())
+    tileLookup.erase(it);
 
-    for (auto* t : toRemove)
-        delete t;
+  for (auto* t : toRemove)
+    delete t;
 }
 
 
@@ -157,7 +155,19 @@ void Tiles::DrawTiles(SDL_Renderer* renderer, int visibleLayer) const {
 
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-  // Tegn alle layers
+  // --- NORMAL MODE ---
+  if (visibleLayer == -1) {
+    // Tegn alle tiles normalt, uden gennemsigtighed
+    for (const auto* group : allGroups) {
+      for (auto* tile : *group) {
+        if (!tile->texture) continue;
+          tile->draw(renderer);
+      }
+    }
+    return;
+  }
+
+  // --- LAYER MODE ---
   for (int i = 0; i < (int)layerGroups.size(); ++i) {
     Uint8 layerAlpha = (i == visibleLayer) ? activeAlpha : inactiveAlpha;
 

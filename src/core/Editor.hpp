@@ -31,6 +31,7 @@ class Editor {
     float mouseY = 0.0f;
     float mapOffsetY = 0.0f;
     bool editMode = true;
+    bool showLayers = false;
 
     int currentLayer = 0;
     const int maxLayers = 3;
