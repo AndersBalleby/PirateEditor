@@ -58,7 +58,7 @@ int main(void) {
     sdl.present();
 
     #if defined(_WIN32) || defined(__linux__)
-      sdl.getAudioHandler().playTrack();
+      //sdl.getAudioHandler().playTrack();
     #endif
   }
 

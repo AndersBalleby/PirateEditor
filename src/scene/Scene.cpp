@@ -6,6 +6,7 @@
 #include "SDL3/SDL_surface.h"
 #include "core/ResourceManager.hpp"
 #include "core/TileManager.hpp"
+#include "logging/Logger.hpp"
 
 namespace Scene {
 
@@ -78,6 +79,7 @@ TileGroup Tiles::LoadTiles(TileType type, const Utils::TileLayer& layout, std::u
         Tile* tile = TileFactory::createTile(type, {(float) j, (float) i}, value);
         tiles.push_back(tile);
 
+        Log::Info("Added: ({}, {})", (int)j, (int)i);
         lookup[makeTileKey((int)j, (int)i)].push_back(tile);
       }
     }
@@ -218,6 +220,17 @@ void Manager::draw(SDL_Renderer* renderer, int visibleLayer) const noexcept {
   bg.render(renderer);
   tiles.DrawTiles(renderer, visibleLayer);
 };
+
+void Manager::addTileToLayer(Tile* tile, int layerIndex) {
+    if(layerIndex < 0 || layerIndex >= (int)tiles.layerGroups.size()) return;
+
+    for(auto* group : tiles.layerGroups[layerIndex]) {
+        group->push_back(tile);
+    }
+
+    long long key = Tiles::makeTileKey(static_cast<int>(tile->position.x / 64), static_cast<int>(tile->position.y));
+    tiles.tileLookup[key].push_back(tile);
+}
 
 void Manager::removeTileAt(int gridX, int gridY, int layerIndex) {
   tiles.RemoveTile(gridX, gridY, layerIndex);

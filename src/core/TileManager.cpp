@@ -6,8 +6,8 @@
 //
 TileFactory::TileFactory() {}
 
-Tile* TileFactory::createTile(TileType type, Vec2<float> position, int tileIndex) {
-  Tile* tile = new Tile(type, position, tileIndex);
+Tile* TileFactory::createTile(TileType type, Vec2<float> position, int tileIndex, bool inserted) {
+  Tile* tile = new Tile(type, position, tileIndex, inserted);
 
   return tile;
 }
@@ -15,42 +15,42 @@ Tile* TileFactory::createTile(TileType type, Vec2<float> position, int tileIndex
 //
 // TILES
 //
-Tile::Tile(TileType type, Vec2<float> position, int tileIndex)
+Tile::Tile(TileType type, Vec2<float> position, int tileIndex, bool inserted)
     : type(type)
     , position(position)
     , texture(nullptr)
 {
   switch (type) {
     case TILE_TYPE_TERRAIN:
-      initializeFromTilemap(ResourceManager::loadTileMap("resources/terrain/terrain_tiles.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTileMap("resources/terrain/terrain_tiles.png"), position, tileIndex, inserted);
       break;
     case TILE_TYPE_CRATE:
-      initializeStaticTile(ResourceManager::loadTexture("resources/terrain/crate.png"), position, {0, 24});
+      initializeStaticTile(ResourceManager::loadTexture("resources/terrain/crate.png"), position, {0, 24}, inserted);
       break;
     case TILE_TYPE_GRASS:
-      initializeFromTilemap(ResourceManager::loadTileMap("resources/decoration/grass/grass.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTileMap("resources/decoration/grass/grass.png"), position, tileIndex, inserted);
       break;
     case TILE_TYPE_PLAYER_SETUP:
-      initializeFromTilemap(ResourceManager::loadTexture("resources/character/setup_tiles.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTexture("resources/character/setup_tiles.png"), position, tileIndex, inserted);
       break;
     case TILE_TYPE_ENEMY:
-      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex, inserted);
       break;
     case TILE_TYPE_COIN:
-      initializeFromTilemap(ResourceManager::loadTexture("resources/coins/coin_tiles.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTexture("resources/coins/coin_tiles.png"), position, tileIndex, inserted);
       break;
     case TILE_TYPE_FG_PALM:
       if(tileIndex == 1) { // 1 = small, 2 = large
-        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_small/small_1.png"), position, {0, -38});
+        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_small/small_1.png"), position, {0, -38}, inserted);
       } else {
-        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png"), position, {0, -64});
+        initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png"), position, {0, -64}, inserted);
       }
       break;
     case TILE_TYPE_BG_PALM:
-      initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_bg/bg_palm_1.png"), position, {0, -64});
+      initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_bg/bg_palm_1.png"), position, {0, -64}, inserted);
       break;
     case TILE_TYPE_CONSTRAINT:
-      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex);
+      initializeFromTilemap(ResourceManager::loadTexture("resources/enemy/setup_tile.png"), position, tileIndex, inserted);
       break;
   }
 }
@@ -73,7 +73,7 @@ void Tile::draw(SDL_Renderer *renderer) const {
   }
 }
 
-void Tile::initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset) {
+void Tile::initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset, bool inserted) {
   if(!texture) {
     Log::Error("Kunne ikke indlæse tile: passerede nullptr i tex");
     return;
@@ -82,8 +82,14 @@ void Tile::initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2
   float texW, texH;
   SDL_GetTextureSize(texture, &texW, &texH);
 
-  dstRect.x = static_cast<float>(position.x * TILE_SIZE) + offset.x;
-  dstRect.y = static_cast<float>(position.y * TILE_SIZE) + offset.y;
+  if(inserted) {
+    dstRect.x = position.x;
+    dstRect.y = position.y;
+  } else {
+    dstRect.x = static_cast<float>(position.x * TILE_SIZE);
+    dstRect.y = static_cast<float>(position.y * TILE_SIZE);
+  }
+
   dstRect.w = texW;
   dstRect.h = texH;
 
@@ -96,7 +102,7 @@ TileType Tile::getType() const {
   return type;
 }
 
-void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex) {
+void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex, bool inserted) {
     if (!tileMapTex) {
         Log::Error("Kunne ikke indlæse tilemap: passerede nullptr i tileMapTex");
         return;
@@ -112,9 +118,14 @@ void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, 
     srcRect.w = TILE_SIZE;
     srcRect.h = TILE_SIZE;
 
+    if(inserted) {
+      dstRect.x = position.x;
+      dstRect.y = position.y;
+    } else {
+      dstRect.x = static_cast<float>(position.x * TILE_SIZE);
+      dstRect.y = static_cast<float>(position.y * TILE_SIZE);
+    }
 
-    dstRect.x = static_cast<float>(position.x * TILE_SIZE);
-    dstRect.y = static_cast<float>(position.y * TILE_SIZE);
     dstRect.w = TILE_SIZE;
     dstRect.h = TILE_SIZE;
 

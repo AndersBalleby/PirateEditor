@@ -21,7 +21,7 @@ enum TileType {
 
 class Tile {
 public:
-  Tile(TileType type, Vec2<float> position, int tileIndex = 0); // id er til tilemaps, default = 0
+  Tile(TileType type, Vec2<float> position, int tileIndex = 0, bool inserted = false); // id er til tilemaps, default = 0
   ~Tile() = default;
 
   void update(Vec2<float> offset);
@@ -35,8 +35,8 @@ public:
   Vec2<float> offset;
 private:
 
-  void initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex);
-  void initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset);
+  void initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex, bool inserted);
+  void initializeStaticTile(SDL_Texture* texture, Vec2<float> position, Vec2<float> offset, bool inserted);
 
   TileType type;
   SDL_FRect srcRect;
@@ -48,7 +48,7 @@ public:
     TileFactory();
     ~TileFactory() = default;
 
-    static Tile* createTile(TileType type, Vec2<float> position, int tileIndex = 0);
+    static Tile* createTile(TileType type, Vec2<float> position, int tileIndex = 0, bool inserted = false);
 private:
     std::vector<SDL_Texture*> textures;
 };

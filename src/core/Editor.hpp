@@ -4,6 +4,7 @@
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
+#include "core/TileManager.hpp"
 #include "logging/Logger.hpp"
 #include "scene/Scene.hpp"
 #include "sdl/SDL_Handler.hpp"
@@ -20,6 +21,9 @@ class Editor {
     void handleInput(SDL_Event& event);
 
   private:
+    TileType selectedTileType = TILE_TYPE_TERRAIN;
+    int selectedTileIndex = 0;
+
     void drawGridLines(SDL_State& state);
     void updateSelectedTiles(SDL_State& state);
 

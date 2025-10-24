@@ -5,6 +5,7 @@
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_scancode.h"
 #include "SDL3/SDL_stdinc.h"
+#include "core/TileManager.hpp"
 #include "logging/Logger.hpp"
 #include <algorithm>
 #include <cstdlib>
@@ -51,6 +52,24 @@ void Editor::drawGridLines(SDL_State& state) {
       TILE_SIZE + 1.0f
     };
     SDL_RenderRect(state.renderer, &rect);
+
+
+    bool leftClick = mouseState & SDL_BUTTON_LMASK;
+    if(leftClick && !wasMouseDown) {
+      if(showLayers) {
+        Tile* existingTile = scene_manager.getTileAt(tileX, tileY);
+        if(!existingTile || existingTile->getType() != selectedTileType) {
+          Tile* newTile = TileFactory::createTile(selectedTileType, {float(tileX * TILE_SIZE - state.cameraPos.x), float(tileY)}, selectedTileIndex, true);
+          scene_manager.addTileToLayer(newTile, currentLayer);
+        }
+      } else {
+        Tile* existingTile = scene_manager.getTileAt(tileX, tileY);
+        if(!existingTile || existingTile->getType() != selectedTileType) {
+          Tile* newTile = TileFactory::createTile(selectedTileType, {float(tileX * TILE_SIZE - state.cameraPos.x), float(tileY)}, selectedTileIndex, true);
+          scene_manager.addTileToLayer(newTile, currentLayer);
+        }
+      }
+    }
 
     if (state.keyState[SDL_SCANCODE_DELETE] ||
         state.keyState[SDL_SCANCODE_BACKSPACE] ||
@@ -146,7 +165,13 @@ void Editor::handleInput(SDL_Event &event) {
         currentLayer = (currentLayer - 1 + maxLayers) % maxLayers;
       }
     }
+
+    if(editMode) {
+      if(event.key.key == SDLK_1) selectedTileType = TILE_TYPE_TERRAIN;
+      if(event.key.key == SDLK_2) selectedTileType = TILE_TYPE_CRATE;
+    }
   }
+
 }
 
 void Editor::updateSelectedTiles(SDL_State& state) {

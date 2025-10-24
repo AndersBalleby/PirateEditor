@@ -90,6 +90,7 @@ class Manager {
     void draw(SDL_Renderer* renderer, int visibleLayer = -1) const noexcept;
     void saveScene(const std::filesystem::path& path);
 
+    void addTileToLayer(Tile* tile, int layerIndex);
     void removeTileAt(int gridX, int gridY, int layerIndex);
     void removeLayerTiles(int gridX, int gridY, int layerIndex);
 
