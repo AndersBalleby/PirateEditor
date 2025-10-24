@@ -59,13 +59,21 @@ void Editor::drawGridLines(SDL_State& state) {
       if(showLayers) {
         Tile* existingTile = scene_manager.getTileAt(tileX, tileY);
         if(!existingTile || existingTile->getType() != selectedTileType) {
-          Tile* newTile = TileFactory::createTile(selectedTileType, {float(tileX * TILE_SIZE - state.cameraPos.x), float(tileY)}, selectedTileIndex, true);
+          Tile* newTile = TileFactory::createTile(
+              selectedTileType,
+              { float(tileX), float(tileY) },
+              selectedTileIndex
+          );
           scene_manager.addTileToLayer(newTile, currentLayer);
         }
       } else {
         Tile* existingTile = scene_manager.getTileAt(tileX, tileY);
         if(!existingTile || existingTile->getType() != selectedTileType) {
-          Tile* newTile = TileFactory::createTile(selectedTileType, {float(tileX * TILE_SIZE - state.cameraPos.x), float(tileY)}, selectedTileIndex, true);
+          Tile* newTile = TileFactory::createTile(
+              selectedTileType,
+              { float(tileX), float(tileY) },
+              selectedTileIndex
+            );
           scene_manager.addTileToLayer(newTile, currentLayer);
         }
       }

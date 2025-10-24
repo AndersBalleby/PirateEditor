@@ -55,9 +55,9 @@ Tile::Tile(TileType type, Vec2<float> position, int tileIndex, bool inserted)
   }
 }
 
-void Tile::update(Vec2<float>offset) {
-  dstRect.x -= offset.x;
-  dstRect.y -= offset.y;
+void Tile::update(Vec2<float> offset) {
+    dstRect.x = position.x * TILE_SIZE - offset.x;
+    dstRect.y = position.y * TILE_SIZE + this->offset.y;
 }
 
 void Tile::draw(SDL_Renderer *renderer) const {

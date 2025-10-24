@@ -12,8 +12,8 @@ namespace Scene {
 
 void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
   for(auto& tile : group) {
-    tile->dstRect.y = tile->position.y * TILE_SIZE + mapOffsetY + tile->offset.y;
     tile->update({cameraX, 0.0f});
+    tile->dstRect.y += mapOffsetY; // apply mapOffsetY once after updating
   }
 }
 
@@ -79,7 +79,6 @@ TileGroup Tiles::LoadTiles(TileType type, const Utils::TileLayer& layout, std::u
         Tile* tile = TileFactory::createTile(type, {(float) j, (float) i}, value);
         tiles.push_back(tile);
 
-        Log::Info("Added: ({}, {})", (int)j, (int)i);
         lookup[makeTileKey((int)j, (int)i)].push_back(tile);
       }
     }
@@ -212,7 +211,7 @@ void Manager::update(SDL_State& state) noexcept {
   }
 
   float mapHeight = layout.terrainLayout.size() * TILE_SIZE;
-  tiles.UpdateTiles(state, mapHeight, state.cameraX);
+  tiles.UpdateTiles(state, mapHeight, state.cameraPos.x);
 };
 
 void Manager::draw(SDL_Renderer* renderer, int visibleLayer) const noexcept {
@@ -222,15 +221,29 @@ void Manager::draw(SDL_Renderer* renderer, int visibleLayer) const noexcept {
 };
 
 void Manager::addTileToLayer(Tile* tile, int layerIndex) {
-    if(layerIndex < 0 || layerIndex >= (int)tiles.layerGroups.size()) return;
+    if (!tile) return;
+    if (layerIndex < 0 || layerIndex >= (int)tiles.layerGroups.size()) return;
 
-    for(auto* group : tiles.layerGroups[layerIndex]) {
-        group->push_back(tile);
+    switch (tile->getType()) {
+        case TILE_TYPE_TERRAIN:       tiles.terrainTiles.push_back(tile); break;
+        case TILE_TYPE_CRATE:         tiles.crateTiles.push_back(tile); break;
+        case TILE_TYPE_GRASS:         tiles.grassTiles.push_back(tile); break;
+        case TILE_TYPE_PLAYER_SETUP:  tiles.playerSetupTiles.push_back(tile); break;
+        case TILE_TYPE_ENEMY:         tiles.enemyTiles.push_back(tile); break;
+        case TILE_TYPE_COIN:          tiles.coinsTiles.push_back(tile); break;
+        case TILE_TYPE_FG_PALM:       tiles.fgPalmsTiles.push_back(tile); break;
+        case TILE_TYPE_BG_PALM:       tiles.bgPalmsTiles.push_back(tile); break;
+        case TILE_TYPE_CONSTRAINT:    tiles.constraintTiles.push_back(tile); break;
+        default: break;
     }
 
-    long long key = Tiles::makeTileKey(static_cast<int>(tile->position.x / 64), static_cast<int>(tile->position.y));
+    // Beregn GRID koordinater
+    const int gx = static_cast<int>(tile->position.x);
+    const int gy = static_cast<int>(tile->position.y);
+    long long key = Tiles::makeTileKey(gx, gy);
     tiles.tileLookup[key].push_back(tile);
 }
+
 
 void Manager::removeTileAt(int gridX, int gridY, int layerIndex) {
   tiles.RemoveTile(gridX, gridY, layerIndex);
