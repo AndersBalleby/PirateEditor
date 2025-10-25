@@ -108,6 +108,17 @@ void Editor::drawGridLines(SDL_State& state) {
       selectedTiles.clear();
     }
 
+    // --- PREVIEW TILE ---
+    ensurePreviewUpToDate();
+    if (previewTile) {
+      if (lastPreviewIndex != selectedTileIndex) {
+        previewTile->setTileIndex(selectedTileIndex);
+        lastPreviewIndex = selectedTileIndex;
+      }
+      updatePreviewPosition(state, tileX, tileY);
+      drawPreview(state.renderer);
+    }
+
     }
 
     bool leftDown = mouseState & SDL_BUTTON_LMASK & state.keyState[SDL_SCANCODE_LCTRL];
@@ -154,6 +165,128 @@ void Editor::drawGridLines(SDL_State& state) {
     }
 }
 
+const char* Editor::tileTypeName(TileType t) const {
+  switch (t) {
+    case TILE_TYPE_TERRAIN:        return "Terrain";
+    case TILE_TYPE_CRATE:          return "Crate";
+    case TILE_TYPE_GRASS:          return "Grass";
+    case TILE_TYPE_PLAYER_SETUP:   return "PlayerSetup";
+    case TILE_TYPE_ENEMY:          return "Enemy";
+    case TILE_TYPE_COIN:           return "Coin";
+    case TILE_TYPE_FG_PALM:        return "FG Palm";
+    case TILE_TYPE_BG_PALM:        return "BG Palm";
+    case TILE_TYPE_FG_PALM_LARGE:  return "FG Palm Large";
+    case TILE_TYPE_FG_PALM_SMALL:  return "FG Palm Small";
+    case TILE_TYPE_CONSTRAINT:     return "Constraint";
+    default:                       return "Unknown";
+  }
+}
+
+int Editor::computeMaxIndexFor(TileType type) const {
+  switch (type) {
+    case TILE_TYPE_TERRAIN:
+    case TILE_TYPE_GRASS:
+    case TILE_TYPE_PLAYER_SETUP:
+    case TILE_TYPE_ENEMY:
+    case TILE_TYPE_COIN:
+    case TILE_TYPE_CONSTRAINT: {
+      // Vi bruger previewTile->texture til at beregne antal ruder i sheets.
+      if (!previewTile || !previewTile->texture) return 0;
+      float w = 0, h = 0;
+      SDL_GetTextureSize(previewTile->texture, &w, &h);
+      int cols = int(w) / TILE_SIZE;
+      int rows = int(h) / TILE_SIZE;
+      int total = std::max(1, cols * rows);
+      return total - 1; // 0-baseret
+    }
+    case TILE_TYPE_FG_PALM:
+      return 1;
+    case TILE_TYPE_BG_PALM:
+    case TILE_TYPE_CRATE:
+      return 0;
+    default:
+      return 0;
+  }
+}
+
+void Editor::rebuildPreview() {
+  // Ryd hvis eksisterer
+  if (previewTile) {
+    delete previewTile;
+    previewTile = nullptr;
+  }
+  // Byg preview tile ved (0,0) – position opdateres løbende
+  previewTile = TileFactory::createTile(selectedTileType, {0.f, 0.f}, selectedTileIndex);
+  lastPreviewType = selectedTileType;
+  lastPreviewIndex = selectedTileIndex;
+
+  // Opdater max index info
+  currentMaxIndex = computeMaxIndexFor(selectedTileType);
+
+  // Marker om vi har et “begrænset” indexområde (til wrap)
+  hasFiniteIndexRange = true;
+
+  // Special-case FG_PALM: brug {1,2}
+  if (selectedTileType == TILE_TYPE_FG_PALM) {
+    if (selectedTileIndex != 1 && selectedTileIndex != 2) {
+      // normaliser til gyldigt sæt
+      selectedTileIndex = 1;
+      if (previewTile) previewTile->setTileIndex(selectedTileIndex);
+      lastPreviewIndex = selectedTileIndex;
+    }
+  }
+}
+
+void Editor::ensurePreviewUpToDate() {
+  if (!previewTile || lastPreviewType != selectedTileType || lastPreviewIndex != selectedTileIndex) {
+    rebuildPreview();
+  }
+}
+
+void Editor::updatePreviewPosition(SDL_State& state, int tileX, int tileY) {
+  if (!previewTile) return;
+
+  // Sæt grid-position, lav ‘update’ (så dstRect.x/y beregnes) og læg mapOffsetY på y
+  previewTile->position = { float(tileX), float(tileY) };
+  previewTile->update({ state.cameraPos.x, 0.0f });
+  previewTile->dstRect.y += mapOffsetY;
+}
+
+void Editor::drawPreview(SDL_Renderer* renderer) {
+  if (!previewTile || !previewTile->texture) return;
+
+  Uint8 oldAlpha = 255;
+  SDL_GetTextureAlphaMod(previewTile->texture, &oldAlpha);
+  SDL_SetTextureAlphaMod(previewTile->texture, 150); // ghost-look
+  previewTile->draw(renderer);
+  SDL_SetTextureAlphaMod(previewTile->texture, oldAlpha);
+}
+
+void Editor::clampOrWrapSelectedIndex(int delta) {
+  // FG_PALM special: {1,2}
+  if (selectedTileType == TILE_TYPE_FG_PALM) {
+    if (delta > 0) selectedTileIndex = (selectedTileIndex == 1 ? 2 : 1);
+    else           selectedTileIndex = (selectedTileIndex == 2 ? 1 : 2);
+    return;
+  }
+
+  // “normale” tilemaps eller statics (statics har max=0)
+  currentMaxIndex = computeMaxIndexFor(selectedTileType);
+  int next = selectedTileIndex + delta;
+
+  if (currentMaxIndex <= 0) {
+    selectedTileIndex = 0;
+    return;
+  }
+
+  // wrap 0..currentMaxIndex
+  if (next < 0) next = currentMaxIndex;
+  if (next > currentMaxIndex) next = 0;
+
+  selectedTileIndex = next;
+}
+
+
 void Editor::handleInput(SDL_Event &event) {
   if(event.type == SDL_EVENT_KEY_DOWN) {
     if(event.key.key == SDLK_SPACE) {
@@ -168,19 +301,34 @@ void Editor::handleInput(SDL_Event &event) {
       if(event.key.key == SDLK_UP) {
         currentLayer = (currentLayer + 1) % maxLayers;
       }
-
       if(event.key.key == SDLK_DOWN) {
         currentLayer = (currentLayer - 1 + maxLayers) % maxLayers;
       }
     }
 
     if(editMode) {
-      if(event.key.key == SDLK_1) selectedTileType = TILE_TYPE_TERRAIN;
-      if(event.key.key == SDLK_2) selectedTileType = TILE_TYPE_CRATE;
+      if(event.key.key == SDLK_1) { selectedTileType = TILE_TYPE_TERRAIN; }
+      if(event.key.key == SDLK_2) { selectedTileType = TILE_TYPE_CRATE; }
+      if(event.key.key == SDLK_3) { selectedTileType = TILE_TYPE_GRASS; }
+      if(event.key.key == SDLK_4) { selectedTileType = TILE_TYPE_PLAYER_SETUP; }
+      if(event.key.key == SDLK_5) { selectedTileType = TILE_TYPE_ENEMY; }
+      if(event.key.key == SDLK_6) { selectedTileType = TILE_TYPE_COIN; }
+      if(event.key.key == SDLK_7) { selectedTileType = TILE_TYPE_FG_PALM; }
+      if(event.key.key == SDLK_8) { selectedTileType = TILE_TYPE_BG_PALM; }
+      if(event.key.key == SDLK_9) { selectedTileType = TILE_TYPE_CONSTRAINT; }
     }
+  }
+  if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+      // event.wheel.y > 0 = scroll op, < 0 = scroll ned
+      if (event.wheel.y > 0) {
+          clampOrWrapSelectedIndex(+1);
+      } else if (event.wheel.y < 0) {
+          clampOrWrapSelectedIndex(-1);
+      }
   }
 
 }
+
 
 void Editor::updateSelectedTiles(SDL_State& state) {
   selectedTiles.clear();
@@ -221,13 +369,29 @@ void Editor::draw(SDL_State& state) {
   drawGridLines(state);
 
   std::string editText = std::format("Edit mode: {}", editMode ? "{green}ON" : "{red}OFF");
-  std::string layerViewText = std::format("Layer View (TAB): {}", showLayers ? "{green}ON" : "{red}OFF");
   UI::Text::displayText(editText, {10.0f, 30.0f});
-  UI::Text::displayText(layerViewText, {10.0f, 50.0f});
+
+  std::string typeText = std::format("Selected type: {}{}", "{green}", tileTypeName(selectedTileType));
+  UI::Text::displayText(typeText, {10.0f, 50.0f});
+
+  currentMaxIndex = computeMaxIndexFor(selectedTileType);
+  int shownMax = (selectedTileType == TILE_TYPE_FG_PALM) ? 2 : (currentMaxIndex + 1); // vis som 1-baseret count
+  int shownIdx = selectedTileIndex;
+
+  if (selectedTileType != TILE_TYPE_FG_PALM) {
+    shownIdx = selectedTileIndex + 1;
+  }
+
+  std::string idxText = std::format("Tile index: {0}/{1}", "{green}" + std::to_string(shownIdx) + "{white}", "{green}" + std::to_string(shownMax));
+  UI::Text::displayText(idxText, {10.0f, 70.0f});
+
+  std::string layerViewText = std::format("Layer View (TAB): {}", showLayers ? "{green}ON" : "{red}OFF");
+  UI::Text::displayText(layerViewText, {10.0f, 90.0f});
+
 
   if(showLayers) {
     std::string layerText = std::format("Layer: {}", layers[currentLayer]);
-    UI::Text::displayText(layerText, {10.0f, 70.0f});
+    UI::Text::displayText(layerText, {10.0f, 110.0f});
   }
 }
 

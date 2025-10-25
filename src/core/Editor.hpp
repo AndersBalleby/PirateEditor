@@ -21,6 +21,21 @@ class Editor {
     void handleInput(SDL_Event& event);
 
   private:
+    Tile* previewTile = nullptr;
+    TileType lastPreviewType = TILE_TYPE_TERRAIN;
+    int lastPreviewIndex = -1;
+
+    int currentMaxIndex = 0;
+    bool hasFiniteIndexRange = false;
+
+    void ensurePreviewUpToDate();
+    void updatePreviewPosition(SDL_State& state, int tileX, int tileY);
+    void drawPreview(SDL_Renderer* renderer);
+    void rebuildPreview();
+    void clampOrWrapSelectedIndex(int delta);
+    int computeMaxIndexFor(TileType type) const;
+    const char* tileTypeName(TileType t) const;
+
     TileType selectedTileType = TILE_TYPE_TERRAIN;
     int selectedTileIndex = 0;
 
