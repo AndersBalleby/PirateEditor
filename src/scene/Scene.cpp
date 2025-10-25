@@ -10,6 +10,85 @@
 
 namespace Scene {
 
+static void WriteCSV(const std::filesystem::path& filePath, const std::vector<std::vector<int>>& data) {
+  std::filesystem::create_directories(filePath.parent_path());
+  std::ofstream out(filePath);
+  if (!out.is_open()) {
+    Log::Error("Kunne ikke åbne fil til skrivning: {}", filePath.string());
+    return;
+  }
+
+  for (size_t y = 0; y < data.size(); ++y) {
+    for (size_t x = 0; x < data[y].size(); ++x) {
+      out << data[y][x];
+      if (x < data[y].size() - 1) out << ",";
+    }
+    out << "\n";
+  }
+  out.close();
+  Log::Info("Gemte {}", filePath.string());
+}
+
+// Bestem max grid size på alle tiletypes
+static Vec2<int> ComputeMapSize(const Tiles& tiles) {
+  int maxX = 0, maxY = 0;
+  for (auto* group : tiles.allGroups) {
+    for (auto* tile : *group) {
+      maxX = std::max(maxX, static_cast<int>(tile->position.x));
+      maxY = std::max(maxY, static_cast<int>(tile->position.y));
+    }
+  }
+  // +1 fordi grid-koordinater er 0-indexed
+  return { maxX + 1, maxY + 1 };
+}
+
+// Konverter tilegroup til 2D matrix
+static std::vector<std::vector<int>> MakeCSVDataForType(const TileGroup& group, int width, int height) {
+  std::vector<std::vector<int>> grid(height, std::vector<int>(width, -1));
+  for (auto* tile : group) {
+    int x = static_cast<int>(tile->position.x);
+    int y = static_cast<int>(tile->position.y);
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+      grid[y][x] = tile->getTileIndex();
+    }
+  }
+  return grid;
+}
+
+void Manager::saveScene(const std::filesystem::path& dirPath) {
+  Log::Info("Gemmer scene til: {}", dirPath.string());
+
+  Vec2<int> mapSize = ComputeMapSize(tiles);
+  const int width  = mapSize.x;
+  const int height = mapSize.y;
+
+  Log::Info("Map size: {} x {}", width, height);
+
+  // Opret én CSV per tiletype
+  struct TypeFile {
+    TileType type;
+    const char* name;
+    TileGroup* group;
+  } typeFiles[] = {
+      { TILE_TYPE_BG_PALM,     "level_0_bg_palms.csv",   &tiles.bgPalmsTiles },
+      { TILE_TYPE_COIN,        "level_0_coins.csv",      &tiles.coinsTiles },
+      { TILE_TYPE_CONSTRAINT,  "level_0_constraints.csv",&tiles.constraintTiles },
+      { TILE_TYPE_CRATE,       "level_0_crates.csv",     &tiles.crateTiles },
+      { TILE_TYPE_ENEMY,       "level_0_enemies.csv",    &tiles.enemyTiles },
+      { TILE_TYPE_FG_PALM,     "level_0_fg_palms.csv",   &tiles.fgPalmsTiles },
+      { TILE_TYPE_GRASS,       "level_0_grass.csv",      &tiles.grassTiles },
+      { TILE_TYPE_PLAYER_SETUP,"level_0_player.csv",     &tiles.playerSetupTiles },
+      { TILE_TYPE_TERRAIN,     "level_0_terrain.csv",    &tiles.terrainTiles }
+  };
+
+  for (const auto& entry : typeFiles) {
+      auto data = MakeCSVDataForType(*entry.group, width, height);
+      WriteCSV(dirPath / entry.name, data);
+  }
+
+  Log::Info("Scene gemt til: {}", dirPath.string());
+}
+
 // bitmask: N=1, E=2, S=4, W=8
 const std::array<int,16> Tiles::TERRAIN_16_MAP = {
   /*0000*/ 15, // isoleret (ingen naboer)
@@ -88,8 +167,6 @@ void Tiles::AutotileRecalcAt(int x, int y) {
   t->setTileIndex(tileIndex);
 }
 
-
-
 void Tiles::AutotileRecalcNeighborsAround(int x, int y) {
   AutotileRecalcAt(x, y);
   AutotileRecalcAt(x, y-1);
@@ -105,7 +182,6 @@ void Tiles::AutotileAllTerrain() {
     AutotileRecalcAt(gx, gy);
   }
 }
-
 
 void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
   for(auto& tile : group) {
@@ -370,7 +446,5 @@ void Manager::removeLayerTiles(int gridX, int gridY, int layerIndex) {
 Tile* Manager::getTileAt(int gridX, int gridY) {
   return tiles.GetTile(gridX, gridY);
 }
-
-void Manager::saveScene(const std::filesystem::path& path) {};
 
 };

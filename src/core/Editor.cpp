@@ -454,6 +454,16 @@ void Editor::handleInput(SDL_Event &event) {
       clampOrWrapSelectedIndex(-1);
     }
   }
+
+  // --- Gem map ---
+  if (event.type == SDL_EVENT_KEY_DOWN &&
+      (event.key.mod & SDL_KMOD_CTRL) &&
+      event.key.key == SDLK_S)
+  {
+      Log::Info("Gemmer bane til levels/0 ...");
+      scene_manager.saveScene("levels/0/");
+  }
+
 }
 
 
