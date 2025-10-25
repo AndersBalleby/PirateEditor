@@ -27,6 +27,9 @@ public:
   void update(Vec2<float> offset);
   void draw(SDL_Renderer* renderer) const;
 
+  void setTileIndex(int tileIndex);
+  int getTileIndex() const;
+
   TileType getType() const;
 
   SDL_FRect dstRect;
@@ -41,6 +44,7 @@ private:
   TileType type;
   SDL_FRect srcRect;
   bool staticTile;
+  int currentTileIndex = 0;
 };
 
 class TileFactory {

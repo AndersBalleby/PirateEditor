@@ -102,6 +102,11 @@ TileType Tile::getType() const {
   return type;
 }
 
+
+int Tile::getTileIndex() const {
+  return currentTileIndex;
+}
+
 void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, int tileIndex, bool inserted) {
     if (!tileMapTex) {
         Log::Error("Kunne ikke indlæse tilemap: passerede nullptr i tileMapTex");
@@ -110,8 +115,9 @@ void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, 
 
     float tilesheetWidth = 0, tilesheetHeight = 0;
     SDL_GetTextureSize(tileMapTex, &tilesheetWidth, &tilesheetHeight);
+    const int tilesPerRow = static_cast<int>(tilesheetWidth) / TILE_SIZE; // 256 / 64
 
-    const int tilesPerRow = tilesheetWidth / TILE_SIZE; // 256 / 64
+    currentTileIndex = tileIndex;
 
     srcRect.x = static_cast<float>((tileIndex % tilesPerRow) * TILE_SIZE);
     srcRect.y = static_cast<float>((tileIndex / tilesPerRow) * TILE_SIZE);
@@ -131,4 +137,18 @@ void Tile::initializeFromTilemap(SDL_Texture* tileMapTex, Vec2<float> position, 
 
     this->texture = tileMapTex;
     this->staticTile = false;
+}
+
+void Tile::setTileIndex(int tileIndex) {
+  if (!texture || staticTile) return;
+  float tilesheetWidth = 0, tilesheetHeight = 0;
+  SDL_GetTextureSize(texture, &tilesheetWidth, &tilesheetHeight);
+  const int tilesPerRow = static_cast<int>(tilesheetWidth) / TILE_SIZE;
+
+  currentTileIndex = tileIndex;
+
+  srcRect.x = static_cast<float>((tileIndex % tilesPerRow) * TILE_SIZE);
+  srcRect.y = static_cast<float>((tileIndex / tilesPerRow) * TILE_SIZE);
+  srcRect.w = TILE_SIZE;
+  srcRect.h = TILE_SIZE;
 }

@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
+#include <functional>
 
 #include "logging/Logger.hpp"
 #include "core/TileManager.hpp"
@@ -68,6 +69,16 @@ struct Tiles {
   std::unordered_map<long long, std::vector<Tile*>> tileLookup;
   static inline long long makeTileKey(int x, int y);
   Tile* GetTile(int gridX, int gridY);
+
+  Tile* GetTileOfType(int gridX, int gridY, TileType type);
+  bool HasTileOfType(int gridX, int gridY, TileType type);
+
+  void AutotileRecalcAt(int x, int y);
+  void AutotileRecalcNeighborsAround(int x, int y);
+  void AutotileAllTerrain();
+
+  static int Make4BitMask(int x, int y, std::function<bool(int, int)> isSame);
+  static const std::array<int, 16> TERRAIN_16_MAP;
 
   static TileGroup LoadTiles(TileType type, const Utils::TileLayer& layout, std::unordered_map<long long, std::vector<Tile*>>& lookup);
   void DrawTiles(SDL_Renderer* renderer) const;

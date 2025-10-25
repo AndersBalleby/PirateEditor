@@ -10,10 +10,107 @@
 
 namespace Scene {
 
+// bitmask: N=1, E=2, S=4, W=8
+const std::array<int,16> Tiles::TERRAIN_16_MAP = {
+  /*0000*/ 15, // isoleret (ingen naboer)
+  /*0001*/  9, // N -> bottom edge
+  /*0010*/  4, // E -> left edge
+  /*0011*/  8, // N+E -> bottom-left corner
+  /*0100*/  1, // S -> top edge
+  /*0101*/  5, // N+S -> vertical (brug center)
+  /*0110*/  0, // E+S -> top-left corner
+  /*0111*/  4, // N+E+S -> left side
+  /*1000*/  3, // W -> right edge
+  /*1001*/ 10, // N+W -> bottom-right corner
+  /*1010*/ 13, // E+W -> horizontal mid (platform mid)
+  /*1011*/  9, // N+E+W -> bottom edge (T-junction)
+  /*1100*/  2, // S+W -> top-right corner
+  /*1101*/  6, // N+S+W -> right side
+  /*1110*/  1, // E+S+W -> top edge
+  /*1111*/  5  // omgivet -> center
+};
+
+
+Tile* Tiles::GetTileOfType(int gx, int gy, TileType type) {
+  long long key = makeTileKey(gx, gy);
+  auto it = tileLookup.find(key);
+  if (it == tileLookup.end()) return nullptr;
+  for (auto* t : it->second) {
+    if (t && t->getType() == type) return t;
+  }
+  return nullptr;
+}
+
+bool Tiles::HasTileOfType(int gx, int gy, TileType type) {
+  return GetTileOfType(gx, gy, type) != nullptr;
+}
+
+int Tiles::Make4BitMask(int x, int y, std::function<bool(int,int)> isSame) {
+  int mask = 0;
+  if (isSame(x, y-1)) mask |= 1;  // N
+  if (isSame(x+1, y)) mask |= 2;  // E
+  if (isSame(x, y+1)) mask |= 4;  // S
+  if (isSame(x-1, y)) mask |= 8;  // W
+  return mask;
+}
+
+void Tiles::AutotileRecalcAt(int x, int y) {
+  Tile* t = GetTileOfType(x, y, TILE_TYPE_TERRAIN);
+  if (!t) return;
+
+  auto isSame = [&](int ax, int ay) {
+      return HasTileOfType(ax, ay, TILE_TYPE_TERRAIN);
+  };
+
+  int mask = Make4BitMask(x, y, isSame);
+  int tileIndex = TERRAIN_16_MAP[mask];
+
+  // --- vandret platform ---
+  if (!isSame(x, y-1) && !isSame(x, y+1)) {
+      bool left  = isSame(x-1, y);
+      bool right = isSame(x+1, y);
+      if (!left && right)      tileIndex = 12; // venstre cap
+      else if (left && right)  tileIndex = 13; // mid
+      else if (left && !right) tileIndex = 14; // højre cap
+      else                     tileIndex = 15; // isoleret
+  }
+
+  // --- lodret søjle ---
+  if (!isSame(x-1, y) && !isSame(x+1, y)) {
+      bool up   = isSame(x, y-1);
+      bool down = isSame(x, y+1);
+      if (!up && down)        tileIndex = 3;  // top cap (bund under sig)
+      else if (up && !down)   tileIndex = 11;  // bottom cap (top over sig)
+      else if (up && down)    tileIndex = 7;  // mid (begge naboer)
+      else                    tileIndex = 15; // helt isoleret
+  }
+
+  t->setTileIndex(tileIndex);
+}
+
+
+
+void Tiles::AutotileRecalcNeighborsAround(int x, int y) {
+  AutotileRecalcAt(x, y);
+  AutotileRecalcAt(x, y-1);
+  AutotileRecalcAt(x+1, y);
+  AutotileRecalcAt(x, y+1);
+  AutotileRecalcAt(x-1, y);
+}
+
+void Tiles::AutotileAllTerrain() {
+  for (auto* t : terrainTiles) {
+    int gx = static_cast<int>(t->position.x);
+    int gy = static_cast<int>(t->position.y);
+    AutotileRecalcAt(gx, gy);
+  }
+}
+
+
 void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX) {
   for(auto& tile : group) {
     tile->update({cameraX, 0.0f});
-    tile->dstRect.y += mapOffsetY; // apply mapOffsetY once after updating
+    tile->dstRect.y += mapOffsetY;
   }
 }
 
@@ -22,6 +119,7 @@ void DrawTileGroup(const TileGroup& group, SDL_Renderer* renderer) {
     tile->draw(renderer);
   }
 }
+
 Layout::Layout(unsigned int level) {
   bgPalmsLayout     = LoadLevelLayout(level, "bg_palms");
   coinsLayout       = LoadLevelLayout(level, "coins");
@@ -55,6 +153,8 @@ Tiles::Tiles(const Layout& layout) {
   fgPalmsTiles     = LoadTiles(TILE_TYPE_FG_PALM, layout.fgPalmsLayout, tileLookup);
   bgPalmsTiles     = LoadTiles(TILE_TYPE_BG_PALM, layout.bgPalmsLayout, tileLookup);
   constraintTiles  = LoadTiles(TILE_TYPE_CONSTRAINT, layout.constraintLayout, tileLookup);
+
+  AutotileAllTerrain();
 }
 
 inline long long Tiles::makeTileKey(int x, int y) {
@@ -242,15 +342,29 @@ void Manager::addTileToLayer(Tile* tile, int layerIndex) {
     const int gy = static_cast<int>(tile->position.y);
     long long key = Tiles::makeTileKey(gx, gy);
     tiles.tileLookup[key].push_back(tile);
+
+    // <-- NYT: autotile for terrain (selv + naboer)
+    if (tile->getType() == TILE_TYPE_TERRAIN) {
+      tiles.AutotileRecalcNeighborsAround(gx, gy);
+    }
 }
 
 
 void Manager::removeTileAt(int gridX, int gridY, int layerIndex) {
+  // Husk om der var terrain her, så vi ved om vi skal autotile naboer bagefter
+  Tile* before = tiles.GetTileOfType(gridX, gridY, TILE_TYPE_TERRAIN);
   tiles.RemoveTile(gridX, gridY, layerIndex);
+  if (before) {
+    tiles.AutotileRecalcNeighborsAround(gridX, gridY);
+  }
 }
 
 void Manager::removeLayerTiles(int gridX, int gridY, int layerIndex) {
+  Tile* before = tiles.GetTileOfType(gridX, gridY, TILE_TYPE_TERRAIN);
   tiles.RemoveTile(gridX, gridY, layerIndex);
+  if (before) {
+    tiles.AutotileRecalcNeighborsAround(gridX, gridY);
+  }
 }
 
 Tile* Manager::getTileAt(int gridX, int gridY) {
