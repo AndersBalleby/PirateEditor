@@ -1,6 +1,7 @@
 #include "SDL_Handler.hpp"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
 #include "ui/TextHandler.hpp"
 
 SDL_State SDL_Handler::state;
@@ -11,7 +12,13 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
 
   if(!initSDL()) return;
 
-  state.window = SDL_CreateWindow(winConfig.title.c_str(), winConfig.width, winConfig.height, SDL_WINDOW_RESIZABLE);
+  SDL_DisplayID display = SDL_GetPrimaryDisplay();
+  const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display);
+  const int WINDOW_WIDTH = mode->w;
+  const int WINDOW_HEIGHT = mode->h;
+
+
+  state.window = SDL_CreateWindow(winConfig.title.c_str(), WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
   if(!state.window) {
     Log::Critical("Kunne ikke oprette vindue");
     return;
@@ -48,6 +55,8 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
   state.windowWidth = winConfig.width;
   state.running = true;
   state.keyState = SDL_GetKeyboardState(nullptr);
+
+  SDL_SetWindowFullscreen(state.window, SDL_WINDOW_FULLSCREEN);
 
   Log::Info("SDL_Handler er korrekt initialiseret");
 }

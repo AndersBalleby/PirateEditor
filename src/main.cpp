@@ -7,8 +7,8 @@
 int main(void) {
   Log::Init();
 
-  const int WINDOW_WIDTH = 1280;
-  const int WINDOW_HEIGHT = 800;
+  const int WINDOW_WIDTH = 1920;
+  const int WINDOW_HEIGHT = 1080;
   SDL_Handler sdl({
     .title = "PirateEditor",
     .width = WINDOW_WIDTH,

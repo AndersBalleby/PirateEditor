@@ -54,7 +54,7 @@ void Editor::drawGridLines(SDL_State& state) {
     SDL_RenderRect(state.renderer, &rect);
 
 
-    bool leftClick = mouseState & SDL_BUTTON_LMASK;
+    bool leftClick = mouseState & SDL_BUTTON_LMASK & !(state.keyState[SDL_SCANCODE_LCTRL]);
     if(leftClick && !wasMouseDown) {
       if(showLayers) {
         Tile* existingTile = scene_manager.getTileAt(tileX, tileY);
@@ -120,6 +120,8 @@ void Editor::drawGridLines(SDL_State& state) {
     }
 
     }
+
+    ensurePreviewUpToDate();
 
     bool leftDown = mouseState & SDL_BUTTON_LMASK & state.keyState[SDL_SCANCODE_LCTRL];
     if(leftDown && !wasMouseDown) {
@@ -190,7 +192,7 @@ int Editor::computeMaxIndexFor(TileType type) const {
     case TILE_TYPE_ENEMY:
     case TILE_TYPE_COIN:
     case TILE_TYPE_CONSTRAINT: {
-      // Vi bruger previewTile->texture til at beregne antal ruder i sheets.
+
       if (!previewTile || !previewTile->texture) return 0;
       float w = 0, h = 0;
       SDL_GetTextureSize(previewTile->texture, &w, &h);
@@ -286,6 +288,128 @@ void Editor::clampOrWrapSelectedIndex(int delta) {
   selectedTileIndex = next;
 }
 
+void Editor::drawTilePalette(SDL_State& state) {
+  if (!showTilePalette) return;
+  if (!previewTile || !previewTile->texture) return;
+
+  // --- Placering i øverste højre hjørne ---
+  paletteRect.x = state.windowWidth - paletteRect.w - 10.f;
+  paletteRect.y = 10.f;
+
+  // --- Baggrund ---
+  SDL_SetRenderDrawColor(state.renderer, 20, 20, 30, 180);
+  SDL_RenderFillRect(state.renderer, &paletteRect);
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 100);
+  SDL_RenderRect(state.renderer, &paletteRect);
+
+  // --- UI Label ---
+  std::string label = std::format("Toggle Palette: {}P", "{green}");
+  UI::Text::displayText(label, {paletteRect.x + 250.0f, paletteRect.y + 15.f});
+
+  // --- Type-specifik rendering ---
+  float texW = 0, texH = 0;
+  SDL_GetTextureSize(previewTile->texture, &texW, &texH);
+  int cols = int(texW) / TILE_SIZE;
+  int rows = int(texH) / TILE_SIZE;
+
+  const float startX = paletteRect.x + paletteMargin;
+  const float startY = paletteRect.y + paletteMargin;
+
+    // --- Hvis dette er en tilemap-baseret type ---
+  bool isTilemapType = (selectedTileType == TILE_TYPE_TERRAIN ||
+                       selectedTileType == TILE_TYPE_GRASS ||
+                       selectedTileType == TILE_TYPE_PLAYER_SETUP ||
+                       selectedTileType == TILE_TYPE_ENEMY ||
+                       selectedTileType == TILE_TYPE_COIN ||
+                       selectedTileType == TILE_TYPE_CONSTRAINT);
+
+  if (isTilemapType && cols > 0 && rows > 0) {
+    int maxIndex = computeMaxIndexFor(selectedTileType);
+    for (int ty = 0; ty < rows; ++ty) {
+      for (int tx = 0; tx < cols; ++tx) {
+        int idx = ty * cols + tx;
+        if (idx > maxIndex) break;
+
+        SDL_FRect dst{
+            startX + tx * (paletteTileSize + palettePadding),
+            startY + ty * (paletteTileSize + palettePadding),
+            (float)paletteTileSize,
+            (float)paletteTileSize
+        };
+        SDL_FRect src{
+            (float)(tx * TILE_SIZE),
+            (float)(ty * TILE_SIZE),
+            (float)TILE_SIZE,
+            (float)TILE_SIZE
+        };
+
+        SDL_RenderTexture(state.renderer, previewTile->texture, &src, &dst);
+
+        if (idx == selectedTileIndex) {
+            SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 90);
+            SDL_RenderFillRect(state.renderer, &dst);
+            SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 200);
+            SDL_RenderRect(state.renderer, &dst);
+        }
+      }
+    }
+    return;
+  }
+
+  // --- Fallback rendering (non-tilemap) ---
+  // Crate, palms, bg_palm etc.
+
+  const float previewSize_palm = 80.0f; // større preview
+  const float previewSize_crate = 58.0f;
+  const float baseX = startX + 10.0f;
+  const float baseY = startY + 10.0f;
+
+  SDL_FRect dstRect_palm { baseX, baseY, previewSize_palm, previewSize_palm };
+  SDL_FRect dstRect_crate { baseX, baseY, previewSize_crate, previewSize_crate };
+  SDL_FRect srcRect { 0, 0, texW, texH };
+
+  // Crate og BG_PALM = ét billede
+  if (selectedTileType == TILE_TYPE_CRATE ||
+      selectedTileType == TILE_TYPE_BG_PALM ||
+      selectedTileType == TILE_TYPE_CONSTRAINT) {
+
+        if(selectedTileType == TILE_TYPE_CRATE) {
+          SDL_RenderTexture(state.renderer, previewTile->texture, &srcRect, &dstRect_crate);
+
+          SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 120);
+          SDL_RenderRect(state.renderer, &dstRect_crate);
+        } else {
+          SDL_RenderTexture(state.renderer, previewTile->texture, &srcRect, &dstRect_palm);
+
+          SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 120);
+          SDL_RenderRect(state.renderer, &dstRect_palm);
+        }
+      return;
+  }
+
+  // FG_PALM = small + large
+  if (selectedTileType == TILE_TYPE_FG_PALM) {
+    // Small palm
+    SDL_Texture* small = ResourceManager::loadTexture("resources/terrain/palm_small/small_1.png");
+    SDL_Texture* large = ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png");
+
+    float smallW = 0, smallH = 0, largeW = 0, largeH = 0;
+    SDL_GetTextureSize(small, &smallW, &smallH);
+    SDL_GetTextureSize(large, &largeW, &largeH);
+
+    SDL_FRect smallDst { baseX, baseY, 64, 64 };
+    SDL_FRect largeDst { baseX + 100, baseY - 10, 64, 96 };
+
+    SDL_RenderTexture(state.renderer, small, nullptr, &smallDst);
+    SDL_RenderTexture(state.renderer, large, nullptr, &largeDst);
+
+    // Marker aktiv variant
+    SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 200);
+    if (selectedTileIndex == 1) SDL_RenderRect(state.renderer, &smallDst);
+    else SDL_RenderRect(state.renderer, &largeDst);
+    return;
+  }
+}
 
 void Editor::handleInput(SDL_Event &event) {
   if(event.type == SDL_EVENT_KEY_DOWN) {
@@ -295,6 +419,10 @@ void Editor::handleInput(SDL_Event &event) {
 
     if(event.key.key == SDLK_TAB) {
       showLayers = !showLayers;
+    }
+
+    if(event.key.key == SDLK_P) {
+      showTilePalette = !showTilePalette;
     }
 
     if(showLayers) {
@@ -319,14 +447,13 @@ void Editor::handleInput(SDL_Event &event) {
     }
   }
   if (event.type == SDL_EVENT_MOUSE_WHEEL) {
-      // event.wheel.y > 0 = scroll op, < 0 = scroll ned
-      if (event.wheel.y > 0) {
-          clampOrWrapSelectedIndex(+1);
-      } else if (event.wheel.y < 0) {
-          clampOrWrapSelectedIndex(-1);
-      }
+    // event.wheel.y > 0 = scroll op, < 0 = scroll ned
+    if (event.wheel.y > 0) {
+      clampOrWrapSelectedIndex(+1);
+    } else if (event.wheel.y < 0) {
+      clampOrWrapSelectedIndex(-1);
+    }
   }
-
 }
 
 
@@ -388,11 +515,12 @@ void Editor::draw(SDL_State& state) {
   std::string layerViewText = std::format("Layer View (TAB): {}", showLayers ? "{green}ON" : "{red}OFF");
   UI::Text::displayText(layerViewText, {10.0f, 90.0f});
 
-
   if(showLayers) {
     std::string layerText = std::format("Layer: {}", layers[currentLayer]);
     UI::Text::displayText(layerText, {10.0f, 110.0f});
   }
+
+  drawTilePalette(state);
 }
 
 void Editor::run(SDL_State& state) {

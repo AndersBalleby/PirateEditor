@@ -21,6 +21,16 @@ class Editor {
     void handleInput(SDL_Event& event);
 
   private:
+    bool showTilePalette = true;
+    SDL_FRect paletteRect { 0.f, 0.f, 480.f, 200.f }; // position & størrelse på UI-panelet
+    int paletteTileSize = 40; // miniaturer i UI
+    float paletteMargin = 8.f;
+    float palettePadding = 4.f;
+    int hoveredTileIndex = -1;
+
+    void drawTilePalette(SDL_State& state);
+    void handleTilePaletteClick(float mouseX, float mouseY);
+
     Tile* previewTile = nullptr;
     TileType lastPreviewType = TILE_TYPE_TERRAIN;
     int lastPreviewIndex = -1;
