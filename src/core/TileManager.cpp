@@ -45,6 +45,7 @@ Tile::Tile(TileType type, Vec2<float> position, int tileIndex, bool inserted)
       } else {
         initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png"), position, {0, -64}, inserted);
       }
+      currentTileIndex = tileIndex;
       break;
     case TILE_TYPE_BG_PALM:
       initializeStaticTile(ResourceManager::loadTexture("resources/terrain/palm_bg/bg_palm_1.png"), position, {0, -64}, inserted);

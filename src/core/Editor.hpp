@@ -21,6 +21,12 @@ class Editor {
     void handleInput(SDL_Event& event);
 
   private:
+    bool showSavePopup = false;
+    std::string savePopupText;
+    float savePopupTimer = 0.0f;
+    const float SAVE_POPUP_DURATION = 2.5f;
+    void drawSavePopup(SDL_State& state);
+
     bool showTilePalette = true;
     SDL_FRect paletteRect { 0.f, 0.f, 480.f, 200.f }; // position & størrelse på UI-panelet
     int paletteTileSize = 40; // miniaturer i UI

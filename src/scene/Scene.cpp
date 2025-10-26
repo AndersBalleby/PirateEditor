@@ -56,37 +56,36 @@ static std::vector<std::vector<int>> MakeCSVDataForType(const TileGroup& group, 
 }
 
 void Manager::saveScene(const std::filesystem::path& dirPath) {
-  Log::Info("Gemmer scene til: {}", dirPath.string());
+    Log::Info("Gemmer scene til: {}", dirPath.string());
 
-  Vec2<int> mapSize = ComputeMapSize(tiles);
-  const int width  = mapSize.x;
-  const int height = mapSize.y;
+    // Tving fast størrelse 60x11
+    const int width  = 60;
+    const int height = 11;
 
-  Log::Info("Map size: {} x {}", width, height);
+    Log::Info("Map size (fast): {} x {}", width, height);
 
-  // Opret én CSV per tiletype
-  struct TypeFile {
-    TileType type;
-    const char* name;
-    TileGroup* group;
-  } typeFiles[] = {
-      { TILE_TYPE_BG_PALM,     "level_0_bg_palms.csv",   &tiles.bgPalmsTiles },
-      { TILE_TYPE_COIN,        "level_0_coins.csv",      &tiles.coinsTiles },
-      { TILE_TYPE_CONSTRAINT,  "level_0_constraints.csv",&tiles.constraintTiles },
-      { TILE_TYPE_CRATE,       "level_0_crates.csv",     &tiles.crateTiles },
-      { TILE_TYPE_ENEMY,       "level_0_enemies.csv",    &tiles.enemyTiles },
-      { TILE_TYPE_FG_PALM,     "level_0_fg_palms.csv",   &tiles.fgPalmsTiles },
-      { TILE_TYPE_GRASS,       "level_0_grass.csv",      &tiles.grassTiles },
-      { TILE_TYPE_PLAYER_SETUP,"level_0_player.csv",     &tiles.playerSetupTiles },
-      { TILE_TYPE_TERRAIN,     "level_0_terrain.csv",    &tiles.terrainTiles }
-  };
+    struct TypeFile {
+        TileType type;
+        const char* name;
+        TileGroup* group;
+    } typeFiles[] = {
+        { TILE_TYPE_BG_PALM,     "level_0_bg_palms.csv",   &tiles.bgPalmsTiles },
+        { TILE_TYPE_COIN,        "level_0_coins.csv",      &tiles.coinsTiles },
+        { TILE_TYPE_CONSTRAINT,  "level_0_constraints.csv",&tiles.constraintTiles },
+        { TILE_TYPE_CRATE,       "level_0_crates.csv",     &tiles.crateTiles },
+        { TILE_TYPE_ENEMY,       "level_0_enemies.csv",    &tiles.enemyTiles },
+        { TILE_TYPE_FG_PALM,     "level_0_fg_palms.csv",   &tiles.fgPalmsTiles },
+        { TILE_TYPE_GRASS,       "level_0_grass.csv",      &tiles.grassTiles },
+        { TILE_TYPE_PLAYER_SETUP,"level_0_player.csv",     &tiles.playerSetupTiles },
+        { TILE_TYPE_TERRAIN,     "level_0_terrain.csv",    &tiles.terrainTiles }
+    };
 
-  for (const auto& entry : typeFiles) {
-      auto data = MakeCSVDataForType(*entry.group, width, height);
-      WriteCSV(dirPath / entry.name, data);
-  }
+    for (const auto& entry : typeFiles) {
+        auto data = MakeCSVDataForType(*entry.group, width, height);
+        WriteCSV(dirPath / entry.name, data);
+    }
 
-  Log::Info("Scene gemt til: {}", dirPath.string());
+    Log::Info("Scene gemt til: {}", dirPath.string());
 }
 
 // bitmask: N=1, E=2, S=4, W=8
@@ -397,32 +396,32 @@ void Manager::draw(SDL_Renderer* renderer, int visibleLayer) const noexcept {
 };
 
 void Manager::addTileToLayer(Tile* tile, int layerIndex) {
-    if (!tile) return;
-    if (layerIndex < 0 || layerIndex >= (int)tiles.layerGroups.size()) return;
+  if (!tile) return;
+  if (layerIndex < 0 || layerIndex >= (int)tiles.layerGroups.size()) return;
 
-    switch (tile->getType()) {
-        case TILE_TYPE_TERRAIN:       tiles.terrainTiles.push_back(tile); break;
-        case TILE_TYPE_CRATE:         tiles.crateTiles.push_back(tile); break;
-        case TILE_TYPE_GRASS:         tiles.grassTiles.push_back(tile); break;
-        case TILE_TYPE_PLAYER_SETUP:  tiles.playerSetupTiles.push_back(tile); break;
-        case TILE_TYPE_ENEMY:         tiles.enemyTiles.push_back(tile); break;
-        case TILE_TYPE_COIN:          tiles.coinsTiles.push_back(tile); break;
-        case TILE_TYPE_FG_PALM:       tiles.fgPalmsTiles.push_back(tile); break;
-        case TILE_TYPE_BG_PALM:       tiles.bgPalmsTiles.push_back(tile); break;
-        case TILE_TYPE_CONSTRAINT:    tiles.constraintTiles.push_back(tile); break;
-        default: break;
-    }
+  switch (tile->getType()) {
+    case TILE_TYPE_TERRAIN:       tiles.terrainTiles.push_back(tile); break;
+    case TILE_TYPE_CRATE:         tiles.crateTiles.push_back(tile); break;
+    case TILE_TYPE_GRASS:         tiles.grassTiles.push_back(tile); break;
+    case TILE_TYPE_PLAYER_SETUP:  tiles.playerSetupTiles.push_back(tile); break;
+    case TILE_TYPE_ENEMY:         tiles.enemyTiles.push_back(tile); break;
+    case TILE_TYPE_COIN:          tiles.coinsTiles.push_back(tile); break;
+    case TILE_TYPE_FG_PALM:       tiles.fgPalmsTiles.push_back(tile); break;
+    case TILE_TYPE_BG_PALM:       tiles.bgPalmsTiles.push_back(tile); break;
+    case TILE_TYPE_CONSTRAINT:    tiles.constraintTiles.push_back(tile); break;
+    default: break;
+  }
 
-    // Beregn GRID koordinater
-    const int gx = static_cast<int>(tile->position.x);
-    const int gy = static_cast<int>(tile->position.y);
-    long long key = Tiles::makeTileKey(gx, gy);
-    tiles.tileLookup[key].push_back(tile);
+  // Beregn GRID koordinater
+  const int gx = static_cast<int>(tile->position.x);
+  const int gy = static_cast<int>(tile->position.y);
+  long long key = Tiles::makeTileKey(gx, gy);
+  tiles.tileLookup[key].push_back(tile);
 
-    // <-- NYT: autotile for terrain (selv + naboer)
-    if (tile->getType() == TILE_TYPE_TERRAIN) {
-      tiles.AutotileRecalcNeighborsAround(gx, gy);
-    }
+
+  if (tile->getType() == TILE_TYPE_TERRAIN) {
+    tiles.AutotileRecalcNeighborsAround(gx, gy);
+  }
 }
 
 

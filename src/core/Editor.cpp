@@ -460,10 +460,16 @@ void Editor::handleInput(SDL_Event &event) {
       (event.key.mod & SDL_KMOD_CTRL) &&
       event.key.key == SDLK_S)
   {
-      Log::Info("Gemmer bane til levels/0 ...");
-      scene_manager.saveScene("levels/0/");
-  }
+    if (event.key.repeat == 0) {
+      const std::string path = "levels/0/";
+      Log::Info("Gemmer bane til {}", path);
+      scene_manager.saveScene(path);
 
+      showSavePopup = true;
+      savePopupText = std::format("Scene gemt til: {}", path);
+      savePopupTimer = SAVE_POPUP_DURATION;
+    }
+  }
 }
 
 
@@ -530,8 +536,36 @@ void Editor::draw(SDL_State& state) {
     UI::Text::displayText(layerText, {10.0f, 110.0f});
   }
 
+  if(showSavePopup)
+    drawSavePopup(state);
+
   drawTilePalette(state);
 }
+
+void Editor::drawSavePopup(SDL_State& state) {
+  if (!showSavePopup) return;
+
+  const float popupW = 400.0f;
+  const float popupH = 60.0f;
+  const float popupX = (state.windowWidth - popupW) / 2.0f;
+  const float popupY = state.windowHeight - popupH - 40.0f;
+
+  SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 180);
+  SDL_FRect rect { popupX, popupY, popupW, popupH };
+  SDL_RenderFillRect(state.renderer, &rect);
+
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
+  SDL_RenderRect(state.renderer, &rect);
+
+  UI::Text::displayText(savePopupText, { popupX + 20.0f, popupY + 20.0f });
+
+  savePopupTimer -= state.deltaTime;
+  if (savePopupTimer <= 0.0f) {
+      showSavePopup = false;
+  }
+}
+
 
 void Editor::run(SDL_State& state) {
   this->update(state);
