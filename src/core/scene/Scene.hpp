@@ -26,6 +26,9 @@ namespace Scene {
   void UpdateTileGroup(TileGroup& group, float mapOffsetY, float cameraX);
   void DrawTileGroup(TileGroup& group, SDL_Renderer* renderer);
 
+  static void RenderMiniBackground(SDL_Renderer* renderer, int mapW, int mapH);
+  SDL_Texture* BuildSceneThumbnail(SDL_Renderer* renderer, const std::string& sceneName, int thumbW = 240, int thumbH = 135);
+
 struct Layout {
   Utils::TileLayer bgPalmsLayout;
   Utils::TileLayer coinsLayout;

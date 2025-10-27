@@ -315,6 +315,7 @@ void EditorUI::openLoadMenu(const std::function<void(const std::string&)>& onLoa
   onLoadScene = onLoad;
   selectedSceneIndex = 0;
   refreshSceneList();
+  clearSceneThumbnails();
   showLoadMenu = true;
 }
 
@@ -373,8 +374,8 @@ void EditorUI::handleLoadMenuEvent(const SDL_Event& event) {
 }
 
 void EditorUI::drawLoadMenu(SDL_State& state) {
-  const float w = 500.f;
-  const float h = 400.f;
+  const float w = 700.f;
+  const float h = 460.f;
   const float x = (state.windowWidth - w) / 2.f;
   const float y = (state.windowHeight - h) / 2.f;
 
@@ -387,13 +388,16 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
 
   UI::Text::displayText("{green}Load Scene", { x + 20.f, y + 20.f });
 
+  float listX = x + 20.f;
+  float listY = y + 70.f;
+  float listW = 300.f;
+  float lineH = 28.f;
+
   if(availableScenes.empty()) {
     UI::Text::displayText("{red} Ingen scener fundet i 'scenes/'", { x + 20.f, y + 80.f });
     return;
   }
 
-  float listStartY = y + 70.f;
-  const float lineH = 28.f;
 
   for(size_t i = 0; i < availableScenes.size(); ++i) {
     std::string text = availableScenes[i];
@@ -401,10 +405,53 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
       text = "{yellow}> " + text + " <";
     }
 
-    UI::Text::displayText(text, { x + 40.f, listStartY + i * lineH });
+    UI::Text::displayText(text, { listX, listY + i * lineH });
+  }
+
+  float thumbAreaX = x + listW + 40.f;
+  float thumbAreaY = y + 70.f;
+  float thumbAreaW = w - (thumbAreaX - x) - 20.f;
+  float thumbAreaH = h - 120.f;
+
+  SDL_FRect thRect { thumbAreaX, thumbAreaY, thumbAreaW, thumbAreaH };
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 50);
+  SDL_RenderRect(state.renderer, &thRect);
+
+  SDL_Texture* th = getSceneThumbnail(state.renderer, availableScenes[selectedSceneIndex]);
+  if(th) {
+    float tw, thh;
+    SDL_GetTextureSize(th, &tw, &thh);
+
+    float sx = thumbAreaW / tw, sy = thumbAreaH / thh, s = std::min(sx, sy);
+    float dw = tw * s, dh = thh * s;
+    SDL_FRect dst {
+      thumbAreaX + (thumbAreaW - dw) / 2.f,
+      thumbAreaY + (thumbAreaH - dh) / 2.f,
+      dw, dh
+    };
+
+    SDL_RenderTexture(state.renderer, th, nullptr, &dst);
+  } else {
+    UI::Text::displayText("{gray}(Kunne ikke bygge thumbnail)", { thumbAreaX + 10.f, thumbAreaY + 10.f });
   }
 
   UI::Text::displayText("{gray}(ENTER = load, ESC = tilbage)", { x + 20.f, y + h - 40.f });
+}
+
+void EditorUI::clearSceneThumbnails() {
+  for(auto& [name, tex] : sceneThumbnails) {
+    if(tex) SDL_DestroyTexture(tex);
+  }
+  sceneThumbnails.clear();
+}
+
+SDL_Texture* EditorUI::getSceneThumbnail(SDL_Renderer* renderer, const std::string& sceneName) {
+  auto it = sceneThumbnails.find(sceneName);
+  if(it != sceneThumbnails.end()) return it->second;
+
+  SDL_Texture* t = Scene::BuildSceneThumbnail(renderer, sceneName, thumbW, thumbH);
+  sceneThumbnails[sceneName] = t;
+  return t;
 }
 
 }

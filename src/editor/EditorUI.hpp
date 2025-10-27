@@ -84,6 +84,12 @@ private:
   void drawLoadMenu(SDL_State& state);
   void handleLoadMenuEvent(const SDL_Event& event);
   void refreshSceneList();
+
+  std::unordered_map<std::string, SDL_Texture*> sceneThumbnails;
+  int thumbW = 240, thumbH = 135;
+
+  SDL_Texture* getSceneThumbnail(SDL_Renderer* renderer, const std::string& sceneName);
+  void clearSceneThumbnails();
 };
 
 }
