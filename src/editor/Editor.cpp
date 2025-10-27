@@ -23,7 +23,7 @@ void Editor::drawGridLines(SDL_State& state) {
   // TODO: Flyt magiske tal ud i en Camera-klasse senere
   const int startX = -64 * 8;
   const int endX = state.windowWidth + 64 * 47;
-  if(!editMode) return;
+  if(!editMode || ui.saveDialogVisible()) return;
 
   for (int x = startX; x <= endX; x += TILE_SIZE) {
     SDL_RenderLine(state.renderer, x - state.cameraPos.x, TILE_SIZE + mapOffsetY, x - state.cameraPos.x, state.windowHeight);
@@ -281,11 +281,11 @@ void Editor::clampOrWrapSelectedIndex(int delta) {
 
 void Editor::handleInput(SDL_Event& event, SDL_State& state) {
   if(event.type == SDL_EVENT_KEY_DOWN) {
-    if(event.key.key == SDLK_SPACE) {
+    if(event.key.key == SDLK_SPACE && !ui.saveDialogVisible()) {
       editMode = !editMode;
     }
 
-    if(editMode) {
+    if(editMode && !ui.saveDialogVisible()) {
       if(event.key.key == SDLK_1) { selectedTileType = TILE_TYPE_TERRAIN; }
       if(event.key.key == SDLK_2) { selectedTileType = TILE_TYPE_CRATE; }
       if(event.key.key == SDLK_3) { selectedTileType = TILE_TYPE_GRASS; }
@@ -297,7 +297,7 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
       if(event.key.key == SDLK_9) { selectedTileType = TILE_TYPE_CONSTRAINT; }
     }
   }
-  if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+  if (event.type == SDL_EVENT_MOUSE_WHEEL && !ui.saveDialogVisible()) {
     // event.wheel.y > 0 = scroll op, < 0 = scroll ned
     if (event.wheel.y > 0) {
       clampOrWrapSelectedIndex(+1);
@@ -312,10 +312,10 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
       event.key.key == SDLK_S)
   {
     if (event.key.repeat == 0) {
-      const std::string path = "levels/0/";
-      Log::Info("Gemmer bane til {}", path);
-      scene_manager.saveScene(path);
-      ui.showSave(std::format("Scene gemt til: {}", path));
+      ui.openSaveDialog(state.window, [&](const std::string& name){
+        scene_manager.saveScene(name);
+        ui.showSave("Scene gemt som: " + name);
+      });
     }
   }
 
@@ -365,7 +365,7 @@ void Editor::updateSelectedTiles(SDL_State& state) {
 }
 
 void Editor::update(SDL_State& state) {
-  scene_manager.update(state);
+  scene_manager.update(state, ui.saveDialogVisible());
   ui.update(state, state.deltaTime);
 }
 

@@ -46,6 +46,9 @@ public:
   bool paletteVisible() const { return showTilePalette; }
   void setPaletteVisible(bool v) { showTilePalette = v; }
 
+  bool saveDialogVisible() const { return showSaveDialog; }
+  void openSaveDialog(SDL_Window* window, const std::function<void(const std::string&)>& onSave);
+
 private:
   bool  showSavePopup = false;
   std::string savePopupText;
@@ -63,6 +66,13 @@ private:
 
   void drawHUD(SDL_State& state, const EditorUIModel& m);
   void drawTilePalette(SDL_State& state, const EditorUIModel& m);
+
+  bool showSaveDialog = false;
+  std::string sceneNameInput;
+  std::function<void(const std::string&)> onSaveScene = nullptr;
+
+  void drawSaveDialog(SDL_State& state);
+  void handleSaveDialogEvent(SDL_Window* window, const SDL_Event& event);
 };
 
 }

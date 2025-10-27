@@ -104,9 +104,9 @@ class Manager {
     Manager(const Manager&) = default;
     Manager(Manager&&) noexcept = default;
 
-    void update(SDL_State& state) noexcept;
+    void update(SDL_State& state, bool lockCamera = false) noexcept;
     void draw(SDL_Renderer* renderer, int visibleLayer = -1) const noexcept;
-    void saveScene(const std::filesystem::path& path);
+    void saveScene(const std::string& sceneName);
 
     void addTileToLayer(Tile* tile, int layerIndex);
     void removeTileAt(int gridX, int gridY, int layerIndex);

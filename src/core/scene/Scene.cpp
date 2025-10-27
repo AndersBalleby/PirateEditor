@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include <filesystem>
 
 namespace Scene {
 
@@ -47,37 +48,41 @@ static std::vector<std::vector<int>> MakeCSVDataForType(const TileGroup& group, 
   return grid;
 }
 
-void Manager::saveScene(const std::filesystem::path& dirPath) {
-    Log::Info("Gemmer scene til: {}", dirPath.string());
+void Manager::saveScene(const std::string& sceneName) {
+  std::filesystem::path sceneDir = std::filesystem::path("scenes") / sceneName;
+  std::filesystem::create_directories(sceneDir);
 
-    // Tving fast størrelse 60x11
-    const int width  = 60;
-    const int height = 11;
+  Log::Info("Gemmer scene til: {}", sceneDir.string());
 
-    Log::Info("Map size (fast): {} x {}", width, height);
+  const int width  = 60;
+  const int height = 11;
 
-    struct TypeFile {
-        TileType type;
-        const char* name;
-        TileGroup* group;
-    } typeFiles[] = {
-        { TILE_TYPE_BG_PALM,     "level_0_bg_palms.csv",   &tiles.bgPalmsTiles },
-        { TILE_TYPE_COIN,        "level_0_coins.csv",      &tiles.coinsTiles },
-        { TILE_TYPE_CONSTRAINT,  "level_0_constraints.csv",&tiles.constraintTiles },
-        { TILE_TYPE_CRATE,       "level_0_crates.csv",     &tiles.crateTiles },
-        { TILE_TYPE_ENEMY,       "level_0_enemies.csv",    &tiles.enemyTiles },
-        { TILE_TYPE_FG_PALM,     "level_0_fg_palms.csv",   &tiles.fgPalmsTiles },
-        { TILE_TYPE_GRASS,       "level_0_grass.csv",      &tiles.grassTiles },
-        { TILE_TYPE_PLAYER_SETUP,"level_0_player.csv",     &tiles.playerSetupTiles },
-        { TILE_TYPE_TERRAIN,     "level_0_terrain.csv",    &tiles.terrainTiles }
-    };
+  Log::Info("Map size (fast): {} x {}", width, height);
 
-    for (const auto& entry : typeFiles) {
-        auto data = MakeCSVDataForType(*entry.group, width, height);
-        WriteCSV(dirPath / entry.name, data);
-    }
+  struct TypeFile {
+    TileType type;
+    const char* suffix;
+    TileGroup* group;
+  } typeFiles[] = {
+    { TILE_TYPE_BG_PALM,     "_bg_palms.csv",   &tiles.bgPalmsTiles },
+    { TILE_TYPE_COIN,        "_coins.csv",      &tiles.coinsTiles },
+    { TILE_TYPE_CONSTRAINT,  "_constraints.csv",&tiles.constraintTiles },
+    { TILE_TYPE_CRATE,       "_crates.csv",     &tiles.crateTiles },
+    { TILE_TYPE_ENEMY,       "_enemies.csv",    &tiles.enemyTiles },
+    { TILE_TYPE_FG_PALM,     "_fg_palms.csv",   &tiles.fgPalmsTiles },
+    { TILE_TYPE_GRASS,       "_grass.csv",      &tiles.grassTiles },
+    { TILE_TYPE_PLAYER_SETUP,"_player.csv",     &tiles.playerSetupTiles },
+    { TILE_TYPE_TERRAIN,     "_terrain.csv",    &tiles.terrainTiles }
+  };
 
-    Log::Info("Scene gemt til: {}", dirPath.string());
+  for (const auto& entry : typeFiles) {
+    auto data = MakeCSVDataForType(*entry.group, width, height);
+    std::filesystem::path filePath = sceneDir / (sceneName + entry.suffix);
+    WriteCSV(filePath, data);
+    Log::Info("Gemte {}", filePath.string());
+  }
+
+  Log::Info("Scene gemt til: {}", sceneName);
 }
 
 // bitmask: N=1, E=2, S=4, W=8
@@ -365,16 +370,18 @@ Manager::Manager(unsigned int level, const std::string& name)
   Log::Info("Indlæste scene \"{}\" successfuldt", name);
 }
 
-void Manager::update(SDL_State& state) noexcept {
+void Manager::update(SDL_State& state, bool lockCamera) noexcept {
   bg.update(state);
 
   state.cameraX = 0.0f;
-  if((state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) && state.cameraPos.x < 3072) {
-    state.cameraX += scrollSpeed * state.deltaTime;
-  }
+  if(!lockCamera) {
+    if((state.keyState[SDL_SCANCODE_RIGHT] || state.keyState[SDL_SCANCODE_D]) && state.cameraPos.x < 3072) {
+      state.cameraX += scrollSpeed * state.deltaTime;
+    }
 
-  if((state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) && state.cameraPos.x > -512) {
-    state.cameraX -= scrollSpeed * state.deltaTime;
+    if((state.keyState[SDL_SCANCODE_LEFT] || state.keyState[SDL_SCANCODE_A]) && state.cameraPos.x > -512) {
+      state.cameraX -= scrollSpeed * state.deltaTime;
+    }
   }
 
   float mapHeight = layout.terrainLayout.size() * TILE_SIZE;

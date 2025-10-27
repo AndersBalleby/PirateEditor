@@ -1,4 +1,7 @@
 #include "EditorUI.hpp"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keyboard.h"
+#include "SDL3/SDL_render.h"
 
 namespace UI {
 
@@ -15,10 +18,16 @@ void EditorUI::draw(SDL_State& state, const EditorUIModel& m) {
   drawHUD(state, m);
   if (showTilePalette) drawTilePalette(state, m);
   if (showSavePopup)   drawSavePopup(state);
+  if (showSaveDialog)  drawSaveDialog(state);
 }
 
 void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, const EditorUIModel& m, const EditorUICallbacks& cb) {
-  if (ev.type == SDL_EVENT_KEY_DOWN) {
+  if(showSaveDialog) {
+    handleSaveDialogEvent(state.window, ev);
+    return;
+  }
+
+  if (ev.type == SDL_EVENT_KEY_DOWN && !saveDialogVisible()) {
     if (ev.key.key == SDLK_TAB && cb.toggleLayerView) cb.toggleLayerView();
     if (ev.key.key == SDLK_P   && cb.togglePalette)   cb.togglePalette();
     if (m.showLayers) {
@@ -28,7 +37,7 @@ void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, const EditorUI
   }
 
   // Mouse wheel over paletten -> skift index
-  if (ev.type == SDL_EVENT_MOUSE_WHEEL && showTilePalette) {
+  if (ev.type == SDL_EVENT_MOUSE_WHEEL && showTilePalette && !saveDialogVisible()) {
     float mx, my;
     SDL_GetMouseState(&mx, &my);
     // paletten ligger i screen-space øverst højre hjørne
@@ -229,6 +238,65 @@ void EditorUI::drawSavePopup(SDL_State& state) {
   SDL_RenderRect(state.renderer, &rect);
 
   UI::Text::displayText(savePopupText, { popupX + 20.f, popupY + 20.f });
+}
+
+void EditorUI::openSaveDialog(SDL_Window* window, const std::function<void(const std::string&)>& onSave) {
+  showSaveDialog = true;
+  sceneNameInput.clear();
+  onSaveScene = onSave;
+  SDL_StartTextInput(window);
+}
+
+void EditorUI::handleSaveDialogEvent(SDL_Window* window, const SDL_Event& event) {
+  if(event.type == SDL_EVENT_KEY_DOWN) {
+    if(event.key.key == SDLK_ESCAPE) {
+      showSaveDialog = false;
+      SDL_StopTextInput(window);
+      return;
+    }
+
+    if(event.key.key == SDLK_RETURN || event.key.key == SDLK_RETURN2) {
+      if(!sceneNameInput.empty() && onSaveScene) {
+        onSaveScene(sceneNameInput);
+        showSaveDialog = false;
+        SDL_StopTextInput(window);
+      }
+      return;
+    }
+
+    if(event.key.key == SDLK_BACKSPACE && !sceneNameInput.empty()) {
+      sceneNameInput.pop_back();
+      return;
+    }
+  }
+
+  if(event.type == SDL_EVENT_TEXT_INPUT) {
+    char c = event.text.text[0];
+    if(std::isalnum(c) || c == '_' || c == '-') {
+      sceneNameInput += c;
+    }
+  }
+}
+
+void EditorUI::drawSaveDialog(SDL_State& state) {
+  const float w = 400.f;
+  const float h = 150.f;
+  const float x = (state.windowWidth - w) / 2.f;
+  const float y = (state.windowHeight - h) / 2.f;
+
+  SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(state.renderer, 20, 20, 30, 230);
+  SDL_FRect rect { x, y, w, h };
+  SDL_RenderFillRect(state.renderer, &rect);
+
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
+  SDL_RenderRect(state.renderer, &rect);
+
+  UI::Text::displayText("{green}Gem Scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("Navn:", { x + 20.f, y + 60.f });
+  UI::Text::displayText(sceneNameInput + "_", { x + 90.f, y + 60.f });
+
+  UI::Text::displayText("{gray}(ENTER = gem, ESC = annullèr)", { x + 20.f, y + 100.f });
 }
 
 }
