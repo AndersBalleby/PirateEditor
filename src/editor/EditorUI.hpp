@@ -48,7 +48,8 @@ public:
   void setPaletteVisible(bool v) { showTilePalette = v; }
 
   bool saveDialogVisible() const { return showSaveDialog; }
-  void openSaveDialog(SDL_Window* window, const std::function<void(const std::string&)>& onSave);
+  void openSaveDialog(SDL_Window* window, const std::string& defaultName, const std::function<void(const std::string&)>& onSave);
+    void openLoadMenu(const std::function<void(const std::string&)>& onLoad);
 
 private:
   bool  showSavePopup = false;
@@ -80,9 +81,8 @@ private:
   int selectedSceneIndex = 0;
   std::function<void(const std::string&)> onLoadScene = nullptr;
 
-  void openLoadMenu(const std::function<void(const std::string&)>& onLoad);
   void drawLoadMenu(SDL_State& state);
-  void handleLoadMenuEvent(const SDL_Event& event);
+  void handleLoadMenuEvent(SDL_State& state, const SDL_Event& event);
   void refreshSceneList();
 
   std::unordered_map<std::string, SDL_Texture*> sceneThumbnails;
@@ -90,6 +90,12 @@ private:
 
   SDL_Texture* getSceneThumbnail(SDL_Renderer* renderer, const std::string& sceneName);
   void clearSceneThumbnails();
+
+  bool showNewSceneDialog = false;
+  std::string newSceneNameInput;
+  std::function<void(const std::string&)> onNewSceneCreate;
+  void handleNewSceneDialogEvent(SDL_Window* window, const SDL_Event& event);
+  void drawNewSceneDialog(SDL_State& state);
 };
 
 }

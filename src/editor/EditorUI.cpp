@@ -17,15 +17,21 @@ void EditorUI::update(SDL_State& state, float dt) noexcept {
 
 void EditorUI::draw(SDL_State& state, const EditorUIModel& m) {
   drawHUD(state, m);
-  if (showTilePalette) drawTilePalette(state, m);
-  if (showSavePopup)   drawSavePopup(state);
-  if (showSaveDialog)  drawSaveDialog(state);
-  if (showLoadMenu)    drawLoadMenu(state);
+  if (showTilePalette)    drawTilePalette(state, m);
+  if (showSavePopup)      drawSavePopup(state);
+  if (showSaveDialog)     drawSaveDialog(state);
+  if (showLoadMenu)       drawLoadMenu(state);
+  if (showNewSceneDialog) drawNewSceneDialog(state);
 }
 
 void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, Scene::Manager& scene_manager, const EditorUIModel& m, const EditorUICallbacks& cb) {
+  if(showNewSceneDialog) {
+    handleNewSceneDialogEvent(state.window, ev);
+    return;
+  }
+
   if(showLoadMenu) {
-    handleLoadMenuEvent(ev);
+    handleLoadMenuEvent(state, ev);
     return;
   }
 
@@ -252,9 +258,9 @@ void EditorUI::drawSavePopup(SDL_State& state) {
   UI::Text::displayText(savePopupText, { popupX + 20.f, popupY + 20.f });
 }
 
-void EditorUI::openSaveDialog(SDL_Window* window, const std::function<void(const std::string&)>& onSave) {
+void EditorUI::openSaveDialog(SDL_Window* window, const std::string& defaultName, const std::function<void(const std::string&)>& onSave) {
   showSaveDialog = true;
-  sceneNameInput.clear();
+  sceneNameInput = defaultName;
   onSaveScene = onSave;
   SDL_StartTextInput(window);
 }
@@ -317,6 +323,39 @@ void EditorUI::openLoadMenu(const std::function<void(const std::string&)>& onLoa
   refreshSceneList();
   clearSceneThumbnails();
   showLoadMenu = true;
+
+  onNewSceneCreate = [&](const std::string& sceneName) {
+    std::filesystem::path sceneDir = std::filesystem::path("scenes") / sceneName;
+    std::filesystem::create_directories(sceneDir);
+
+    // Lav tomme CSV-filer
+    const char* files[] = {
+      "_bg_palms.csv", "_coins.csv", "_constraints.csv", "_crates.csv",
+      "_enemies.csv", "_fg_palms.csv", "_grass.csv", "_player.csv", "_terrain.csv"
+    };
+
+    const int width = 60;
+    const int height = 11;
+    for (const char* f : files) {
+      std::ofstream out(sceneDir / (sceneName + f));
+      for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+          out << "-1";
+          if (x < width - 1) out << ",";
+        }
+        out << "\n";
+      }
+    }
+
+
+    // Opdater listen og load direkte
+    refreshSceneList();
+    if(onLoadScene) onLoadScene(sceneName);
+    showNewSceneDialog = false;
+    showLoadMenu = false;
+    showSave("Ny scene oprettet: " + sceneName);
+  };
+
 }
 
 void EditorUI::refreshSceneList() {
@@ -334,7 +373,7 @@ void EditorUI::refreshSceneList() {
   std::sort(availableScenes.begin(), availableScenes.end());
 }
 
-void EditorUI::handleLoadMenuEvent(const SDL_Event& event) {
+void EditorUI::handleLoadMenuEvent(SDL_State& state, const SDL_Event& event) {
   if(event.type == SDL_EVENT_KEY_DOWN) {
     if(event.key.key == SDLK_ESCAPE) {
       showLoadMenu = false;
@@ -371,6 +410,13 @@ void EditorUI::handleLoadMenuEvent(const SDL_Event& event) {
       }
     }
   }
+
+  if(event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_N) {
+    showNewSceneDialog = true;
+    newSceneNameInput.clear();
+    SDL_StartTextInput(state.window);
+  }
+
 }
 
 void EditorUI::drawLoadMenu(SDL_State& state) {
@@ -435,7 +481,11 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
     UI::Text::displayText("{gray}(Kunne ikke bygge thumbnail)", { thumbAreaX + 10.f, thumbAreaY + 10.f });
   }
 
+  float newSceneY = listY + availableScenes.size() * lineH + 10.f;
+  UI::Text::displayText("{gray}➕ Ny Scene (tryk N)", { listX, newSceneY });
+
   UI::Text::displayText("{gray}(ENTER = load, ESC = tilbage)", { x + 20.f, y + h - 40.f });
+
 }
 
 void EditorUI::clearSceneThumbnails() {
@@ -453,5 +503,56 @@ SDL_Texture* EditorUI::getSceneThumbnail(SDL_Renderer* renderer, const std::stri
   sceneThumbnails[sceneName] = t;
   return t;
 }
+
+void EditorUI::handleNewSceneDialogEvent(SDL_Window* window, const SDL_Event& event) {
+  if(event.type == SDL_EVENT_KEY_DOWN) {
+    if(event.key.key == SDLK_ESCAPE) {
+      showNewSceneDialog = false;
+      SDL_StopTextInput(window);
+      return;
+    }
+
+    if(event.key.key == SDLK_RETURN || event.key.key == SDLK_RETURN2) {
+      if(!newSceneNameInput.empty() && onNewSceneCreate) {
+        onNewSceneCreate(newSceneNameInput);
+        showNewSceneDialog = false;
+        SDL_StopTextInput(window);
+      }
+      return;
+    }
+
+    if(event.key.key == SDLK_BACKSPACE && !newSceneNameInput.empty()) {
+      newSceneNameInput.pop_back();
+      return;
+    }
+  }
+
+  if(event.type == SDL_EVENT_TEXT_INPUT) {
+    char c = event.text.text[0];
+    if(std::isalnum(c) || c == '_' || c == '-') {
+      newSceneNameInput += c;
+    }
+  }
+}
+
+void EditorUI::drawNewSceneDialog(SDL_State& state) {
+  const float w = 400.f;
+  const float h = 150.f;
+  const float x = (state.windowWidth - w) / 2.f;
+  const float y = (state.windowHeight - h) / 2.f;
+
+  SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(state.renderer, 20, 20, 30, 230);
+  SDL_FRect rect { x, y, w, h };
+  SDL_RenderFillRect(state.renderer, &rect);
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
+  SDL_RenderRect(state.renderer, &rect);
+
+  UI::Text::displayText("{green}Opret ny scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("Navn:", { x + 20.f, y + 60.f });
+  UI::Text::displayText(newSceneNameInput + "_", { x + 90.f, y + 60.f });
+  UI::Text::displayText("{gray}(ENTER = opret, ESC = annullér)", { x + 20.f, y + 100.f });
+}
+
 
 }

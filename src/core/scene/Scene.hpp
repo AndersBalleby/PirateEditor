@@ -129,6 +129,9 @@ class Manager {
 
     void loadSceneFromFolder(const std::string& sceneName);
 
+    const std::string& getName() const { return name; }
+    Background& getBackground() { return bg; }
+
   private:
     // Camera - måske lave dette som en class på et tidspunkt
     const float scrollSpeed = 750.0f;

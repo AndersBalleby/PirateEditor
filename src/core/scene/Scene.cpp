@@ -680,8 +680,7 @@ void Manager::loadSceneFromFolder(const std::string& sceneName) {
   Layout newLayout(sceneName);
 
   if(newLayout.terrainLayout.empty()) {
-    Log::Error("Scene '{}' kunne ikke indlæses (terrain er tom)", sceneName);
-    return;
+    Log::Warn("Scene '{}' er tom - initialiserer som en ny scene", sceneName);
   }
 
   FreeAllTiles(tiles);

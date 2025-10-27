@@ -1,9 +1,14 @@
 #include "Editor.hpp"
 
 Editor::Editor()
-  : scene_manager(0, "TestScene")
+  : scene_manager(0, "TempEmptyScene")
 {
   Log::Info("Initialiserer editor");
+  ui.openLoadMenu([&](const std::string& sceneName) {
+    scene_manager.loadSceneFromFolder(sceneName);
+    ui.showSave("Scene indlæst: " + sceneName);
+    sceneLoaded = true;
+  });
 }
 
 void Editor::drawGridLines(SDL_State& state) {
@@ -20,7 +25,6 @@ void Editor::drawGridLines(SDL_State& state) {
 
   SDL_SetRenderDrawColor(state.renderer, gridColor.r, gridColor.g, gridColor.b, gridColor.a);
 
-  // TODO: Flyt magiske tal ud i en Camera-klasse senere
   const int startX = -64 * 8;
   const int endX = state.windowWidth + 64 * 47;
   if(!editMode || ui.saveDialogVisible()) return;
@@ -157,22 +161,6 @@ void Editor::drawGridLines(SDL_State& state) {
     }
 }
 
-const char* Editor::tileTypeName(TileType t) const {
-  switch (t) {
-    case TILE_TYPE_TERRAIN:        return "Terrain";
-    case TILE_TYPE_CRATE:          return "Crate";
-    case TILE_TYPE_GRASS:          return "Grass";
-    case TILE_TYPE_PLAYER_SETUP:   return "PlayerSetup";
-    case TILE_TYPE_ENEMY:          return "Enemy";
-    case TILE_TYPE_COIN:           return "Coin";
-    case TILE_TYPE_FG_PALM:        return "FG Palm";
-    case TILE_TYPE_BG_PALM:        return "BG Palm";
-    case TILE_TYPE_FG_PALM_LARGE:  return "FG Palm Large";
-    case TILE_TYPE_FG_PALM_SMALL:  return "FG Palm Small";
-    case TILE_TYPE_CONSTRAINT:     return "Constraint";
-    default:                       return "Unknown";
-  }
-}
 
 int Editor::computeMaxIndexFor(TileType type) const {
   switch (type) {
@@ -280,6 +268,11 @@ void Editor::clampOrWrapSelectedIndex(int delta) {
 
 
 void Editor::handleInput(SDL_Event& event, SDL_State& state) {
+  if(!sceneLoaded) {
+    ui.handleEvent(event, state, scene_manager, {}, {});
+    return;
+  }
+
   if(event.type == SDL_EVENT_KEY_DOWN) {
     if(event.key.key == SDLK_SPACE && !ui.saveDialogVisible()) {
       editMode = !editMode;
@@ -312,14 +305,13 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
       event.key.key == SDLK_S)
   {
     if (event.key.repeat == 0) {
-      ui.openSaveDialog(state.window, [&](const std::string& name){
+      ui.openSaveDialog(state.window, scene_manager.getName(), [&](const std::string& name){
         scene_manager.saveScene(name);
         ui.showSave("Scene gemt som: " + name);
       });
     }
   }
 
-  // Giv UI en chance for at håndtere paletten/layers
   UI::EditorUIModel m;
   m.editMode          = editMode;
   m.showLayers        = showLayers;
@@ -365,24 +357,31 @@ void Editor::updateSelectedTiles(SDL_State& state) {
 }
 
 void Editor::update(SDL_State& state) {
-  scene_manager.update(state, ui.saveDialogVisible());
   ui.update(state, state.deltaTime);
+  if(!sceneLoaded) {
+    scene_manager.getBackground().update(state);
+    return;
+  }
+
+  scene_manager.update(state, ui.saveDialogVisible());
 }
 
 const std::string layers[] = {"{green}Background", "{green}Terrain", "{green}Foreground"};
 void Editor::draw(SDL_State& state) {
+  if (!sceneLoaded) {
+    // Kun baggrund og menu
+    scene_manager.getBackground().render(state.renderer);
+    ui.draw(state, {});
+    return;
+  }
+
   if (showLayers) {
-    // Tegn alt transparent undtagen currentLayer
     scene_manager.draw(state.renderer, currentLayer);
   } else {
-    // Normal visning – tegn alt
     scene_manager.draw(state.renderer, -1);
   }
 
   drawGridLines(state);
-
-  // --- UI overlay (HUD, palette, popup) ---
-  currentMaxIndex = computeMaxIndexFor(selectedTileType);
 
   UI::EditorUIModel m;
   m.editMode          = editMode;
@@ -391,12 +390,12 @@ void Editor::draw(SDL_State& state) {
   m.selectedTileType  = selectedTileType;
   m.selectedTileIndex = selectedTileIndex;
   m.selectedTexture   = (previewTile ? previewTile->texture : nullptr);
-  m.maxIndex          = (selectedTileType == TILE_TYPE_FG_PALM) ? 1 /* bruges ikke, men lad den være */
-                        : currentMaxIndex;
+  m.maxIndex          = currentMaxIndex;
   m.tileSize          = TILE_SIZE;
 
   ui.draw(state, m);
 }
+
 
 
 void Editor::run(SDL_State& state) {

@@ -72,4 +72,5 @@ class Editor {
 
     Scene::Manager scene_manager;
     UI::EditorUI ui;
+    bool sceneLoaded = false;
 };
