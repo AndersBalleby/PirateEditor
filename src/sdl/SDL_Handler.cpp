@@ -1,8 +1,4 @@
 #include "SDL_Handler.hpp"
-#include "SDL3/SDL_mouse.h"
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_video.h"
-#include "ui/TextHandler.hpp"
 
 SDL_State SDL_Handler::state;
 

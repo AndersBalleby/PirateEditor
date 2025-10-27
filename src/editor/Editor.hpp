@@ -1,15 +1,23 @@
 #pragma once
 
 #include <string>
+#include <algorithm>
+#include <cstdlib>
+#include <format>
+
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
-#include "core/TileManager.hpp"
+#include "tiles/TileManager.hpp"
 #include "logging/Logger.hpp"
 #include "scene/Scene.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "ui/TextHandler.hpp"
-#include "ui/EditorUI.hpp"
+#include "SDL3/SDL_keycode.h"
+#include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_scancode.h"
+#include "SDL3/SDL_stdinc.h"
+#include "EditorUI.hpp"
 
 class Editor {
   public:

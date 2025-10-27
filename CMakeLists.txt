@@ -55,6 +55,15 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 # ---------------------
 add_executable(PirateEditor ${SRC_FILES})
 
+target_include_directories(PirateEditor
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/sdl
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/editor
+)
+
 # ---------------------
 # Link biblioteker
 # ---------------------

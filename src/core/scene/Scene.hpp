@@ -8,10 +8,17 @@
 #include <functional>
 
 #include "logging/Logger.hpp"
-#include "core/TileManager.hpp"
-#include "io/utils.hpp"
+#include "tiles/TileManager.hpp"
+#include "utils/utils.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "Background.hpp"
+
+#include "SDL3/SDL_blendmode.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_oldnames.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
+#include "resources/ResourceManager.hpp"
 
 namespace Scene {
   using TileGroup = std::vector<Tile*>;

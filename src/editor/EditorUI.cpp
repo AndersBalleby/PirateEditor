@@ -1,7 +1,4 @@
-#include "ui/EditorUI.hpp"
-#include <algorithm>
-#include <format>
-#include "logging/Logger.hpp"
+#include "EditorUI.hpp"
 
 namespace UI {
 

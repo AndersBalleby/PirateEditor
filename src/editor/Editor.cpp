@@ -1,15 +1,4 @@
 #include "Editor.hpp"
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_keycode.h"
-#include "SDL3/SDL_mouse.h"
-#include "SDL3/SDL_oldnames.h"
-#include "SDL3/SDL_scancode.h"
-#include "SDL3/SDL_stdinc.h"
-#include "core/TileManager.hpp"
-#include "logging/Logger.hpp"
-#include <algorithm>
-#include <cstdlib>
-#include <format>
 
 Editor::Editor()
   : scene_manager(0, "TestScene")

@@ -1,10 +1,12 @@
 #pragma once
 
 #include "SDL3/SDL_rect.h"
+#include "SDL3/SDL_video.h"
 #include "SDL3/SDL_render.h"
 #include "logging/Logger.hpp"
 #include "sdl/SDL_Handler.hpp"
-#include "core/ResourceManager.hpp"
+#include "resources/ResourceManager.hpp"
+
 
 class Cloud {
 public:

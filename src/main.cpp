@@ -1,8 +1,8 @@
 #include "SDL3/SDL_events.h"
 #include "logging/Logger.hpp"
 #include "sdl/SDL_Handler.hpp"
-#include "core/Editor.hpp"
-#include "ui/FPS_Counter.hpp"
+#include "editor/Editor.hpp"
+#include "editor/FPS_Counter.hpp"
 
 int main(void) {
   Log::Init();

@@ -7,8 +7,12 @@
 
 #include "SDL3/SDL_keyboard.h"
 #include "logging/Logger.hpp"
-#include "core/ResourceManager.hpp"
-#include "core/Audio.hpp"
+#include "resources/ResourceManager.hpp"
+#include "audio/Audio.hpp"
+#include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
+#include "ui/TextHandler.hpp"
 
 struct WindowConfig {
   std::string title;
@@ -17,22 +21,22 @@ struct WindowConfig {
 };
 
 struct SDL_State {
-    SDL_Window*   window   = nullptr;
-    SDL_Renderer* renderer = nullptr;
+  SDL_Window*   window   = nullptr;
+  SDL_Renderer* renderer = nullptr;
 
-    #if defined(_WIN32) || defined(__linux__)
-    AudioHandler  audioHandler;
-    #endif
+  #if defined(_WIN32) || defined(__linux__)
+  AudioHandler  audioHandler;
+  #endif
 
-    bool          running  = false;
-    float         deltaTime = 0.0f;
-    float         windowHeight = 0.0f;
-    float         windowWidth = 0.0f;
-    float         cameraX = 0.0f;
-    Vec2<float>   cameraPos = {0.0f, 0.0f};
-    const bool* keyState;
+  bool          running  = false;
+  float         deltaTime = 0.0f;
+  float         windowHeight = 0.0f;
+  float         windowWidth = 0.0f;
+  float         cameraX = 0.0f;
+  Vec2<float>   cameraPos = {0.0f, 0.0f};
+  const bool* keyState;
 
-    void tickDeltaTime(uint64_t now, uint64_t last);
+  void tickDeltaTime(uint64_t now, uint64_t last);
 };
 
 class SDL_Handler {

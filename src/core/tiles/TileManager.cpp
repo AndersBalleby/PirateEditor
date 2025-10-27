@@ -1,5 +1,4 @@
 #include "TileManager.hpp"
-#include "SDL3/SDL_render.h"
 
 //
 // TILE FACTORY

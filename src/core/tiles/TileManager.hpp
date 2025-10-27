@@ -1,9 +1,10 @@
 #pragma once
 
-#include "math/vec.hpp"
-#include "ResourceManager.hpp"
 #include <vector>
 #include <SDL3/SDL.h>
+#include "math/vec.hpp"
+#include "resources/ResourceManager.hpp"
+#include "SDL3/SDL_render.h"
 
 enum TileType {
   TILE_TYPE_TERRAIN,

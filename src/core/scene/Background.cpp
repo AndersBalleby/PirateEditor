@@ -1,8 +1,4 @@
 #include "Background.hpp"
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_video.h"
-#include "core/ResourceManager.hpp"
-#include "logging/Logger.hpp"
 
 namespace fs = std::filesystem;
 

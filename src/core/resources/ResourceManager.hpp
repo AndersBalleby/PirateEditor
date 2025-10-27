@@ -5,13 +5,12 @@
 #include <vector>
 #include <unordered_map>
 #include <filesystem>
-#include <iostream>
-#include <algorithm>
+
+#include "utils/utils.hpp"
+#include "math/vec.hpp"
 
 #include "SDL3_ttf/SDL_ttf.h"
 #include "logging/Logger.hpp"
-#include "io/utils.hpp"
-#include "math/vec.hpp"
 
 const int TILE_SIZE = 64;
 class Animation {

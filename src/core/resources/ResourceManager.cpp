@@ -1,6 +1,4 @@
 #include "ResourceManager.hpp"
-#include "SDL3_ttf/SDL_ttf.h"
-#include "logging/Logger.hpp"
 
 SDL_Renderer* ResourceManager::s_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture*> ResourceManager::s_textures;

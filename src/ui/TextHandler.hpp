@@ -8,6 +8,10 @@
 
 #include "logging/Logger.hpp"
 #include "math/vec.hpp"
+#include "SDL3/SDL_oldnames.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3_ttf/SDL_ttf.h"
+
 
 namespace UI {
 
