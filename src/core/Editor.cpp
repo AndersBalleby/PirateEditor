@@ -9,6 +9,7 @@
 #include "logging/Logger.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <format>
 
 Editor::Editor()
   : scene_manager(0, "TestScene")
@@ -288,150 +289,11 @@ void Editor::clampOrWrapSelectedIndex(int delta) {
   selectedTileIndex = next;
 }
 
-void Editor::drawTilePalette(SDL_State& state) {
-  if (!showTilePalette) return;
-  if (!previewTile || !previewTile->texture) return;
 
-  // --- Placering i øverste højre hjørne ---
-  paletteRect.x = state.windowWidth - paletteRect.w - 10.f;
-  paletteRect.y = 10.f;
-
-  // --- Baggrund ---
-  SDL_SetRenderDrawColor(state.renderer, 20, 20, 30, 180);
-  SDL_RenderFillRect(state.renderer, &paletteRect);
-  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 100);
-  SDL_RenderRect(state.renderer, &paletteRect);
-
-  // --- UI Label ---
-  std::string label = std::format("Toggle Palette: {}P", "{green}");
-  UI::Text::displayText(label, {paletteRect.x + 250.0f, paletteRect.y + 15.f});
-
-  // --- Type-specifik rendering ---
-  float texW = 0, texH = 0;
-  SDL_GetTextureSize(previewTile->texture, &texW, &texH);
-  int cols = int(texW) / TILE_SIZE;
-  int rows = int(texH) / TILE_SIZE;
-
-  const float startX = paletteRect.x + paletteMargin;
-  const float startY = paletteRect.y + paletteMargin;
-
-    // --- Hvis dette er en tilemap-baseret type ---
-  bool isTilemapType = (selectedTileType == TILE_TYPE_TERRAIN ||
-                       selectedTileType == TILE_TYPE_GRASS ||
-                       selectedTileType == TILE_TYPE_PLAYER_SETUP ||
-                       selectedTileType == TILE_TYPE_ENEMY ||
-                       selectedTileType == TILE_TYPE_COIN ||
-                       selectedTileType == TILE_TYPE_CONSTRAINT);
-
-  if (isTilemapType && cols > 0 && rows > 0) {
-    int maxIndex = computeMaxIndexFor(selectedTileType);
-    for (int ty = 0; ty < rows; ++ty) {
-      for (int tx = 0; tx < cols; ++tx) {
-        int idx = ty * cols + tx;
-        if (idx > maxIndex) break;
-
-        SDL_FRect dst{
-            startX + tx * (paletteTileSize + palettePadding),
-            startY + ty * (paletteTileSize + palettePadding),
-            (float)paletteTileSize,
-            (float)paletteTileSize
-        };
-        SDL_FRect src{
-            (float)(tx * TILE_SIZE),
-            (float)(ty * TILE_SIZE),
-            (float)TILE_SIZE,
-            (float)TILE_SIZE
-        };
-
-        SDL_RenderTexture(state.renderer, previewTile->texture, &src, &dst);
-
-        if (idx == selectedTileIndex) {
-            SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 90);
-            SDL_RenderFillRect(state.renderer, &dst);
-            SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 200);
-            SDL_RenderRect(state.renderer, &dst);
-        }
-      }
-    }
-    return;
-  }
-
-  // --- Fallback rendering (non-tilemap) ---
-  // Crate, palms, bg_palm etc.
-
-  const float previewSize_palm = 80.0f; // større preview
-  const float previewSize_crate = 58.0f;
-  const float baseX = startX + 10.0f;
-  const float baseY = startY + 10.0f;
-
-  SDL_FRect dstRect_palm { baseX, baseY, previewSize_palm, previewSize_palm };
-  SDL_FRect dstRect_crate { baseX, baseY, previewSize_crate, previewSize_crate };
-  SDL_FRect srcRect { 0, 0, texW, texH };
-
-  // Crate og BG_PALM = ét billede
-  if (selectedTileType == TILE_TYPE_CRATE ||
-      selectedTileType == TILE_TYPE_BG_PALM ||
-      selectedTileType == TILE_TYPE_CONSTRAINT) {
-
-        if(selectedTileType == TILE_TYPE_CRATE) {
-          SDL_RenderTexture(state.renderer, previewTile->texture, &srcRect, &dstRect_crate);
-
-          SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 120);
-          SDL_RenderRect(state.renderer, &dstRect_crate);
-        } else {
-          SDL_RenderTexture(state.renderer, previewTile->texture, &srcRect, &dstRect_palm);
-
-          SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 120);
-          SDL_RenderRect(state.renderer, &dstRect_palm);
-        }
-      return;
-  }
-
-  // FG_PALM = small + large
-  if (selectedTileType == TILE_TYPE_FG_PALM) {
-    // Small palm
-    SDL_Texture* small = ResourceManager::loadTexture("resources/terrain/palm_small/small_1.png");
-    SDL_Texture* large = ResourceManager::loadTexture("resources/terrain/palm_large/large_1.png");
-
-    float smallW = 0, smallH = 0, largeW = 0, largeH = 0;
-    SDL_GetTextureSize(small, &smallW, &smallH);
-    SDL_GetTextureSize(large, &largeW, &largeH);
-
-    SDL_FRect smallDst { baseX, baseY, 64, 64 };
-    SDL_FRect largeDst { baseX + 100, baseY - 10, 64, 96 };
-
-    SDL_RenderTexture(state.renderer, small, nullptr, &smallDst);
-    SDL_RenderTexture(state.renderer, large, nullptr, &largeDst);
-
-    // Marker aktiv variant
-    SDL_SetRenderDrawColor(state.renderer, 255, 220, 0, 200);
-    if (selectedTileIndex == 1) SDL_RenderRect(state.renderer, &smallDst);
-    else SDL_RenderRect(state.renderer, &largeDst);
-    return;
-  }
-}
-
-void Editor::handleInput(SDL_Event &event) {
+void Editor::handleInput(SDL_Event& event, SDL_State& state) {
   if(event.type == SDL_EVENT_KEY_DOWN) {
     if(event.key.key == SDLK_SPACE) {
       editMode = !editMode;
-    }
-
-    if(event.key.key == SDLK_TAB) {
-      showLayers = !showLayers;
-    }
-
-    if(event.key.key == SDLK_P) {
-      showTilePalette = !showTilePalette;
-    }
-
-    if(showLayers) {
-      if(event.key.key == SDLK_UP) {
-        currentLayer = (currentLayer + 1) % maxLayers;
-      }
-      if(event.key.key == SDLK_DOWN) {
-        currentLayer = (currentLayer - 1 + maxLayers) % maxLayers;
-      }
     }
 
     if(editMode) {
@@ -464,12 +326,30 @@ void Editor::handleInput(SDL_Event &event) {
       const std::string path = "levels/0/";
       Log::Info("Gemmer bane til {}", path);
       scene_manager.saveScene(path);
-
-      showSavePopup = true;
-      savePopupText = std::format("Scene gemt til: {}", path);
-      savePopupTimer = SAVE_POPUP_DURATION;
+      ui.showSave(std::format("Scene gemt til: {}", path));
     }
   }
+
+  // Giv UI en chance for at håndtere paletten/layers
+  UI::EditorUIModel m;
+  m.editMode          = editMode;
+  m.showLayers        = showLayers;
+  m.currentLayer      = currentLayer;
+  m.selectedTileType  = selectedTileType;
+  m.selectedTileIndex = selectedTileIndex;
+  m.selectedTexture   = (previewTile ? previewTile->texture : nullptr);
+  m.maxIndex          = currentMaxIndex;
+  m.tileSize          = TILE_SIZE;
+
+  UI::EditorUICallbacks cb;
+  cb.setSelectedIndex = [&](int idx){ selectedTileIndex = idx; };
+  cb.nudgeIndex       = [&](int d){ clampOrWrapSelectedIndex(d); };
+  cb.toggleLayerView  = [&]{ showLayers = !showLayers; };
+  cb.nextLayer        = [&]{ if (showLayers) currentLayer = (currentLayer + 1) % maxLayers; };
+  cb.prevLayer        = [&]{ if (showLayers) currentLayer = (currentLayer - 1 + maxLayers) % maxLayers; };
+  cb.togglePalette    = [&]{ ui.setPaletteVisible(!ui.paletteVisible()); };
+
+  ui.handleEvent(event, state, m, cb);
 }
 
 
@@ -497,6 +377,7 @@ void Editor::updateSelectedTiles(SDL_State& state) {
 
 void Editor::update(SDL_State& state) {
   scene_manager.update(state);
+  ui.update(state, state.deltaTime);
 }
 
 const std::string layers[] = {"{green}Background", "{green}Terrain", "{green}Foreground"};
@@ -511,59 +392,21 @@ void Editor::draw(SDL_State& state) {
 
   drawGridLines(state);
 
-  std::string editText = std::format("Edit mode: {}", editMode ? "{green}ON" : "{red}OFF");
-  UI::Text::displayText(editText, {10.0f, 30.0f});
-
-  std::string typeText = std::format("Selected type: {}{}", "{green}", tileTypeName(selectedTileType));
-  UI::Text::displayText(typeText, {10.0f, 50.0f});
-
+  // --- UI overlay (HUD, palette, popup) ---
   currentMaxIndex = computeMaxIndexFor(selectedTileType);
-  int shownMax = (selectedTileType == TILE_TYPE_FG_PALM) ? 2 : (currentMaxIndex + 1); // vis som 1-baseret count
-  int shownIdx = selectedTileIndex;
 
-  if (selectedTileType != TILE_TYPE_FG_PALM) {
-    shownIdx = selectedTileIndex + 1;
-  }
+  UI::EditorUIModel m;
+  m.editMode          = editMode;
+  m.showLayers        = showLayers;
+  m.currentLayer      = currentLayer;
+  m.selectedTileType  = selectedTileType;
+  m.selectedTileIndex = selectedTileIndex;
+  m.selectedTexture   = (previewTile ? previewTile->texture : nullptr);
+  m.maxIndex          = (selectedTileType == TILE_TYPE_FG_PALM) ? 1 /* bruges ikke, men lad den være */
+                        : currentMaxIndex;
+  m.tileSize          = TILE_SIZE;
 
-  std::string idxText = std::format("Tile index: {0}/{1}", "{green}" + std::to_string(shownIdx) + "{white}", "{green}" + std::to_string(shownMax));
-  UI::Text::displayText(idxText, {10.0f, 70.0f});
-
-  std::string layerViewText = std::format("Layer View (TAB): {}", showLayers ? "{green}ON" : "{red}OFF");
-  UI::Text::displayText(layerViewText, {10.0f, 90.0f});
-
-  if(showLayers) {
-    std::string layerText = std::format("Layer: {}", layers[currentLayer]);
-    UI::Text::displayText(layerText, {10.0f, 110.0f});
-  }
-
-  if(showSavePopup)
-    drawSavePopup(state);
-
-  drawTilePalette(state);
-}
-
-void Editor::drawSavePopup(SDL_State& state) {
-  if (!showSavePopup) return;
-
-  const float popupW = 400.0f;
-  const float popupH = 60.0f;
-  const float popupX = (state.windowWidth - popupW) / 2.0f;
-  const float popupY = state.windowHeight - popupH - 40.0f;
-
-  SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
-  SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 180);
-  SDL_FRect rect { popupX, popupY, popupW, popupH };
-  SDL_RenderFillRect(state.renderer, &rect);
-
-  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
-  SDL_RenderRect(state.renderer, &rect);
-
-  UI::Text::displayText(savePopupText, { popupX + 20.0f, popupY + 20.0f });
-
-  savePopupTimer -= state.deltaTime;
-  if (savePopupTimer <= 0.0f) {
-      showSavePopup = false;
-  }
+  ui.draw(state, m);
 }
 
 

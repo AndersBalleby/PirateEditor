@@ -9,6 +9,7 @@
 #include "scene/Scene.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "ui/TextHandler.hpp"
+#include "ui/EditorUI.hpp"
 
 class Editor {
   public:
@@ -18,25 +19,9 @@ class Editor {
     void run(SDL_State& state);
     void update(SDL_State& state);
     void draw(SDL_State& state);
-    void handleInput(SDL_Event& event);
+    void handleInput(SDL_Event& event, SDL_State& state);
 
   private:
-    bool showSavePopup = false;
-    std::string savePopupText;
-    float savePopupTimer = 0.0f;
-    const float SAVE_POPUP_DURATION = 2.5f;
-    void drawSavePopup(SDL_State& state);
-
-    bool showTilePalette = true;
-    SDL_FRect paletteRect { 0.f, 0.f, 480.f, 200.f }; // position & størrelse på UI-panelet
-    int paletteTileSize = 40; // miniaturer i UI
-    float paletteMargin = 8.f;
-    float palettePadding = 4.f;
-    int hoveredTileIndex = -1;
-
-    void drawTilePalette(SDL_State& state);
-    void handleTilePaletteClick(float mouseX, float mouseY);
-
     Tile* previewTile = nullptr;
     TileType lastPreviewType = TILE_TYPE_TERRAIN;
     int lastPreviewIndex = -1;
@@ -78,4 +63,5 @@ class Editor {
     std::vector<std::pair<int, int>> selectedTiles;
 
     Scene::Manager scene_manager;
+    UI::EditorUI ui;
 };

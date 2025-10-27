@@ -24,6 +24,4 @@ void FPS_Counter::update(SDL_State& state) noexcept {
 
   // Vis FPS
   UI::Text::displayText("FPS: {green}" + std::to_string(int(fps)), Vec2<float>(10, 10));
-
-  fpsTimer += state.deltaTime;
 }

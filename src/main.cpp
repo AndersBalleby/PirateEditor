@@ -41,7 +41,7 @@ int main(void) {
       }
 
       // Håndterer input i editor
-      editor.handleInput(event);
+      editor.handleInput(event, sdl.getState());
     }
 
     // --- Rendering ---
