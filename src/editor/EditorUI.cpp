@@ -3,6 +3,7 @@
 #include "SDL3/SDL_keyboard.h"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3_ttf/SDL_ttf.h"
 
 namespace UI {
 
@@ -64,7 +65,7 @@ void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, Scene::Manager
   } else if(ev.type == SDL_EVENT_KEY_DOWN && ev.key.key == SDLK_ESCAPE && !saveDialogVisible()) {
     openLoadMenu([&](const std::string& sceneName) {
       scene_manager.loadSceneFromFolder(sceneName);
-      showSave("Scene loadet: " + sceneName);
+      showSave("Scene Loaded: " + sceneName);
     });
   }
 
@@ -242,21 +243,28 @@ void EditorUI::drawTilePalette(SDL_State& state, const EditorUIModel& m) {
 }
 
 void EditorUI::drawSavePopup(SDL_State& state) {
-  const float popupW = 400.f;
-  const float popupH = 60.f;
+  int textW = 0, textH = 0;
+  TTF_GetTextSize(TTF_CreateText(nullptr, UI::Text::getFont(), savePopupText.c_str(), savePopupText.length()), &textW, &textH);
+
+  const float paddingX = 40.f;
+  const float paddingY = 20.f;
+
+  const float popupW = textW + paddingX * 2.f;
+  const float popupH = textH + paddingY;
   const float popupX = (state.windowWidth - popupW) / 2.f;
   const float popupY = state.windowHeight - popupH - 40.f;
 
   SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
   SDL_SetRenderDrawColor(state.renderer, 0, 0, 0, 180);
-  SDL_FRect rect { popupX, popupY, popupW, popupH };
+  SDL_FRect rect{ popupX, popupY, popupW, popupH };
   SDL_RenderFillRect(state.renderer, &rect);
 
   SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
   SDL_RenderRect(state.renderer, &rect);
 
-  UI::Text::displayText(savePopupText, { popupX + 20.f, popupY + 20.f });
+  UI::Text::displayText(savePopupText, { popupX + paddingX, popupY + paddingY / 2.f });
 }
+
 
 void EditorUI::openSaveDialog(SDL_Window* window, const std::string& defaultName, const std::function<void(const std::string&)>& onSave) {
   showSaveDialog = true;
@@ -297,7 +305,7 @@ void EditorUI::handleSaveDialogEvent(SDL_Window* window, const SDL_Event& event)
 }
 
 void EditorUI::drawSaveDialog(SDL_State& state) {
-  const float w = 400.f;
+  const float w = 450.f;
   const float h = 150.f;
   const float x = (state.windowWidth - w) / 2.f;
   const float y = (state.windowHeight - h) / 2.f;
@@ -310,11 +318,11 @@ void EditorUI::drawSaveDialog(SDL_State& state) {
   SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
   SDL_RenderRect(state.renderer, &rect);
 
-  UI::Text::displayText("{green}Gem Scene", { x + 20.f, y + 20.f });
-  UI::Text::displayText("Navn:", { x + 20.f, y + 60.f });
+  UI::Text::displayText("{green}Save Scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("Name:", { x + 20.f, y + 60.f });
   UI::Text::displayText(sceneNameInput + "_", { x + 90.f, y + 60.f });
 
-  UI::Text::displayText("{gray}(ENTER = gem, ESC = annullèr)", { x + 20.f, y + 100.f });
+  UI::Text::displayText("{gray}(ENTER = save, ESC = cancel)", { x + 20.f, y + 100.f });
 }
 
 void EditorUI::openLoadMenu(const std::function<void(const std::string&)>& onLoad) {
@@ -353,7 +361,7 @@ void EditorUI::openLoadMenu(const std::function<void(const std::string&)>& onLoa
     if(onLoadScene) onLoadScene(sceneName);
     showNewSceneDialog = false;
     showLoadMenu = false;
-    showSave("Ny scene oprettet: " + sceneName);
+    showSave("New Scene Created: " + sceneName);
   };
 
 }
@@ -440,7 +448,10 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
   float lineH = 28.f;
 
   if(availableScenes.empty()) {
-    UI::Text::displayText("{red} Ingen scener fundet i 'scenes/'", { x + 20.f, y + 80.f });
+    UI::Text::displayText("{red} No scenes found in 'scenes/'", { x + 20.f, y + 80.f });
+
+    float newSceneY = listY + availableScenes.size() * lineH + 10.f;
+    UI::Text::displayText("{green}> Create a new scene! (press 'N')", { x + 20.f, y + 140.f });
     return;
   }
 
@@ -448,7 +459,7 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
   for(size_t i = 0; i < availableScenes.size(); ++i) {
     std::string text = availableScenes[i];
     if((int) i == selectedSceneIndex) {
-      text = "{yellow}> " + text + " <";
+      text = "{cyan}> " + text + " <";
     }
 
     UI::Text::displayText(text, { listX, listY + i * lineH });
@@ -478,13 +489,13 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
 
     SDL_RenderTexture(state.renderer, th, nullptr, &dst);
   } else {
-    UI::Text::displayText("{gray}(Kunne ikke bygge thumbnail)", { thumbAreaX + 10.f, thumbAreaY + 10.f });
+    UI::Text::displayText("{gray}(Couldn't build thumbnail)", { thumbAreaX + 10.f, thumbAreaY + 10.f });
   }
 
   float newSceneY = listY + availableScenes.size() * lineH + 10.f;
-  UI::Text::displayText("{gray}➕ Ny Scene (tryk N)", { listX, newSceneY });
+  UI::Text::displayText("{yellow}> New Scene (press 'N')", { listX, newSceneY });
 
-  UI::Text::displayText("{gray}(ENTER = load, ESC = tilbage)", { x + 20.f, y + h - 40.f });
+  UI::Text::displayText("{gray}(ENTER = load, ESC = back)", { x + 20.f, y + h - 40.f });
 
 }
 
@@ -536,7 +547,7 @@ void EditorUI::handleNewSceneDialogEvent(SDL_Window* window, const SDL_Event& ev
 }
 
 void EditorUI::drawNewSceneDialog(SDL_State& state) {
-  const float w = 400.f;
+  const float w = 450.f;
   const float h = 150.f;
   const float x = (state.windowWidth - w) / 2.f;
   const float y = (state.windowHeight - h) / 2.f;
@@ -548,10 +559,10 @@ void EditorUI::drawNewSceneDialog(SDL_State& state) {
   SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
   SDL_RenderRect(state.renderer, &rect);
 
-  UI::Text::displayText("{green}Opret ny scene", { x + 20.f, y + 20.f });
-  UI::Text::displayText("Navn:", { x + 20.f, y + 60.f });
+  UI::Text::displayText("{green}Create new scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("Name:", { x + 20.f, y + 60.f });
   UI::Text::displayText(newSceneNameInput + "_", { x + 90.f, y + 60.f });
-  UI::Text::displayText("{gray}(ENTER = opret, ESC = annullér)", { x + 20.f, y + 100.f });
+  UI::Text::displayText("{gray}(ENTER = create, ESC = cancel)", { x + 20.f, y + 100.f });
 }
 
 

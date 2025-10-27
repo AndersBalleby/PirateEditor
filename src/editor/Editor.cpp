@@ -6,7 +6,7 @@ Editor::Editor()
   Log::Info("Initialiserer editor");
   ui.openLoadMenu([&](const std::string& sceneName) {
     scene_manager.loadSceneFromFolder(sceneName);
-    ui.showSave("Scene indlæst: " + sceneName);
+    ui.showSave("Scene Loaded Successfully: " + sceneName);
     sceneLoaded = true;
   });
 }
@@ -27,7 +27,7 @@ void Editor::drawGridLines(SDL_State& state) {
 
   const int startX = -64 * 8;
   const int endX = state.windowWidth + 64 * 47;
-  if(!editMode || ui.saveDialogVisible()) return;
+  if(!editMode || ui.saveDialogVisible() || ui.loadDialogVisible() || ui.newSceneDialogVisible()) return;
 
   for (int x = startX; x <= endX; x += TILE_SIZE) {
     SDL_RenderLine(state.renderer, x - state.cameraPos.x, TILE_SIZE + mapOffsetY, x - state.cameraPos.x, state.windowHeight);
@@ -45,8 +45,8 @@ void Editor::drawGridLines(SDL_State& state) {
       TILE_SIZE + 1.0f,
       TILE_SIZE + 1.0f
     };
-    SDL_RenderRect(state.renderer, &rect);
 
+    SDL_RenderRect(state.renderer, &rect);
 
     bool leftClick = mouseState & SDL_BUTTON_LMASK & !(state.keyState[SDL_SCANCODE_LCTRL]);
     if(leftClick && !wasMouseDown) {
@@ -274,11 +274,11 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
   }
 
   if(event.type == SDL_EVENT_KEY_DOWN) {
-    if(event.key.key == SDLK_SPACE && !ui.saveDialogVisible()) {
+    if(event.key.key == SDLK_SPACE && (!ui.saveDialogVisible() && !ui.loadDialogVisible() && !ui.newSceneDialogVisible())) {
       editMode = !editMode;
     }
 
-    if(editMode && !ui.saveDialogVisible()) {
+    if(editMode && (!ui.saveDialogVisible() && !ui.loadDialogVisible() && !ui.newSceneDialogVisible())) {
       if(event.key.key == SDLK_1) { selectedTileType = TILE_TYPE_TERRAIN; }
       if(event.key.key == SDLK_2) { selectedTileType = TILE_TYPE_CRATE; }
       if(event.key.key == SDLK_3) { selectedTileType = TILE_TYPE_GRASS; }
@@ -290,7 +290,7 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
       if(event.key.key == SDLK_9) { selectedTileType = TILE_TYPE_CONSTRAINT; }
     }
   }
-  if (event.type == SDL_EVENT_MOUSE_WHEEL && !ui.saveDialogVisible()) {
+  if (event.type == SDL_EVENT_MOUSE_WHEEL && (!ui.saveDialogVisible() && !ui.loadDialogVisible() && !ui.newSceneDialogVisible())) {
     // event.wheel.y > 0 = scroll op, < 0 = scroll ned
     if (event.wheel.y > 0) {
       clampOrWrapSelectedIndex(+1);
@@ -363,7 +363,7 @@ void Editor::update(SDL_State& state) {
     return;
   }
 
-  scene_manager.update(state, ui.saveDialogVisible());
+  scene_manager.update(state, (ui.saveDialogVisible() || ui.loadDialogVisible()));
 }
 
 const std::string layers[] = {"{green}Background", "{green}Terrain", "{green}Foreground"};

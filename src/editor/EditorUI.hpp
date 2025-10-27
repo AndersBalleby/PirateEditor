@@ -48,8 +48,10 @@ public:
   void setPaletteVisible(bool v) { showTilePalette = v; }
 
   bool saveDialogVisible() const { return showSaveDialog; }
+  bool loadDialogVisible() const { return showLoadMenu; }
+  bool newSceneDialogVisible() const { return showNewSceneDialog; }
   void openSaveDialog(SDL_Window* window, const std::string& defaultName, const std::function<void(const std::string&)>& onSave);
-    void openLoadMenu(const std::function<void(const std::string&)>& onLoad);
+  void openLoadMenu(const std::function<void(const std::string&)>& onLoad);
 
 private:
   bool  showSavePopup = false;

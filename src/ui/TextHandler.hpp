@@ -53,6 +53,7 @@ class Text {
 
     static void displayText(const std::string& text, Vec2<float> position, SDL_Color color = {255, 255, 255, 255});
     static void trimUnusedCache(double maxAgeSeconds = 5.0);
+    static TTF_Font* getFont() { return s_font; }
   private:
     Text() = default;
 

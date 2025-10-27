@@ -70,12 +70,10 @@ static void RenderMiniBackground(SDL_Renderer *renderer, int mapW, int mapH) {
   SDL_FRect middleRect { 0, topH, (float)mapW, middleH };
   SDL_FRect bottomRect { 0, topH + middleH, (float)mapW, bottomH };
 
-  // Tegn lagene
   SDL_RenderTexture(renderer, sky_top,    nullptr, &topRect);
   SDL_RenderTexture(renderer, sky_middle, nullptr, &middleRect);
   SDL_RenderTexture(renderer, sky_bottom, nullptr, &bottomRect);
 
-  // Tegn et par “faste” skyer for at gøre previewet levende
   SDL_Texture* cloud1 = ResourceManager::loadTexture("resources/decoration/clouds/1.png");
   SDL_Texture* cloud2 = ResourceManager::loadTexture("resources/decoration/clouds/2.png");
   SDL_Texture* cloud3 = ResourceManager::loadTexture("resources/decoration/clouds/3.png");
@@ -101,38 +99,49 @@ SDL_Texture* BuildSceneThumbnail(SDL_Renderer* renderer, const std::string& scen
 
   for (auto* group : temp.allGroups)
     for (auto* t : *group)
-      t->update({0.f, 0.f}); // nulstil world offse
+      t->update({0.f, 0.f}); // nulstil world offset
 
   Vec2<int> grid = ComputeMapSize(temp);
   int mapW = std::max(1, grid.x * TILE_SIZE);
   int mapH = std::max(1, grid.y * TILE_SIZE);
 
-  const int MAX_RT = 4096;
-  if(mapW > MAX_RT || mapH > MAX_RT) {
-    float s = std::min((float) MAX_RT / mapW, (float) MAX_RT / mapH);
-    mapW = std::max(1, (int)(mapW * s));
-    mapH = std::max(1, (int)(mapH * s));
+  if (mapW <= 0 || mapH <= 0) {
+    Log::Warn("Scene '{}' har ingen tiles - springer thumbnail over", sceneName);
+    return nullptr;
   }
 
-  SDL_Texture* fullTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, mapW, mapH);
-  if(!fullTex) return nullptr;
+  const int visibleTilesX = 10;
+  const int visibleTilesY = 8;
+
+  const int visibleW = std::min(mapW, visibleTilesX * TILE_SIZE);
+  const int visibleH = std::min(mapH, visibleTilesY * TILE_SIZE);
+
+
+  SDL_Texture* fullTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, visibleW, visibleH);
+  if (!fullTex) {
+    Log::Error("Kunne ikke oprette thumbnail-render-target for '{}', fejl: {}", sceneName, SDL_GetError());
+    return nullptr;
+  }
+
   SDL_SetTextureBlendMode(fullTex, SDL_BLENDMODE_BLEND);
-
   SDL_SetRenderTarget(renderer, fullTex);
-  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
   SDL_SetRenderDrawColor(renderer, 18, 18, 24, 255);
   SDL_RenderClear(renderer);
 
-  RenderMiniBackground(renderer, mapW, mapH);
+  RenderMiniBackground(renderer, visibleW, visibleH);
 
-  temp.DrawTiles(renderer);
+  for (const auto* group : temp.allGroups) {
+    for (auto* tile : *group) {
+      if (tile->position.x * TILE_SIZE >= visibleW) continue;
+      tile->draw(renderer);
+    }
+  }
 
   SDL_SetRenderTarget(renderer, nullptr);
 
   SDL_Texture* thumb = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, thumbW, thumbH);
-  if(!thumb) {
-    SDL_SetRenderTarget(renderer, nullptr);
+  if (!thumb) {
+    Log::Error("Kunne ikke oprette thumbnail-tekstur for '{}'", sceneName);
     SDL_DestroyTexture(fullTex);
     return nullptr;
   }
@@ -142,57 +151,29 @@ SDL_Texture* BuildSceneThumbnail(SDL_Renderer* renderer, const std::string& scen
   SDL_SetRenderDrawColor(renderer, 12, 12, 16, 255);
   SDL_RenderClear(renderer);
 
-  // Vi vil kun vise en del af mappet – fx 1/5
-  float visibleFraction = 0.2f; // 20% af map-bredden
-  int viewW = (int)(mapW * visibleFraction);
-  int viewH = mapH;
+  float sx = (float)thumbW / visibleW;
+  float sy = (float)thumbH / visibleH;
+  float s = std::min(sx, sy);
+  int dstW = (int)(visibleW * s);
+  int dstH = (int)(visibleH * s);
 
-  // Vi tager midten af mappet (eller brug 0 for venstre side)
-  int viewX = 0;
-  int viewY = 0;
-
-  // Beregn forhold mellem scene og thumbnail
-  float sx = (float) thumbW / viewW;
-  float sy = (float) thumbH / viewH;
-
-  // Brug max i stedet for min => zoom mere ind, så vi fylder hele feltet
-  float s = std::max(sx, sy);
-
-  // Beregn hvor meget vi skal beskære fra source (udenfor synsfeltet)
-  float cropW = thumbW / s;
-  float cropH = thumbH / s;
-
-  // Center cropping
-  float cropX = viewX + (viewW - cropW) / 2.f;
-  float cropY = viewY + (viewH - cropH) / 2.f;
-
-  // Source rectangle (hvad vi faktisk viser)
-  SDL_FRect src {
-    cropX,
-    cropY,
-    cropW,
-    cropH
+  SDL_FRect dst{
+    (float)((thumbW - dstW) / 2),
+    (float)((thumbH - dstH) / 2),
+    (float)dstW,
+    (float)dstH
   };
 
-  // Destination udfylder hele thumbnail
-  SDL_FRect dst {
-    0.f, 0.f,
-    (float)thumbW,
-    (float)thumbH
-  };
+  SDL_RenderTexture(renderer, fullTex, nullptr, &dst);
 
-  // Tegn med crop zoom
-  SDL_RenderTexture(renderer, fullTex, &src, &dst);
-
-
-  // Tegn kun det udsnit vi valgte
-  SDL_RenderTexture(renderer, fullTex, &src, &dst);
-
+  // Luk op efter os
   SDL_SetRenderTarget(renderer, nullptr);
   SDL_DestroyTexture(fullTex);
 
   return thumb;
 }
+
+
 
 void Manager::saveScene(const std::string& sceneName) {
   std::filesystem::path sceneDir = std::filesystem::path("scenes") / sceneName;
