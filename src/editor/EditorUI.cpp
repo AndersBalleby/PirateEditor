@@ -1,6 +1,7 @@
 #include "EditorUI.hpp"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keyboard.h"
+#include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_render.h"
 
 namespace UI {
@@ -19,9 +20,15 @@ void EditorUI::draw(SDL_State& state, const EditorUIModel& m) {
   if (showTilePalette) drawTilePalette(state, m);
   if (showSavePopup)   drawSavePopup(state);
   if (showSaveDialog)  drawSaveDialog(state);
+  if (showLoadMenu)    drawLoadMenu(state);
 }
 
-void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, const EditorUIModel& m, const EditorUICallbacks& cb) {
+void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, Scene::Manager& scene_manager, const EditorUIModel& m, const EditorUICallbacks& cb) {
+  if(showLoadMenu) {
+    handleLoadMenuEvent(ev);
+    return;
+  }
+
   if(showSaveDialog) {
     handleSaveDialogEvent(state.window, ev);
     return;
@@ -48,7 +55,12 @@ void EditorUI::handleEvent(const SDL_Event& ev, SDL_State& state, const EditorUI
             else if (ev.wheel.y < 0) cb.nudgeIndex(-1);
           }
         }
-    }
+  } else if(ev.type == SDL_EVENT_KEY_DOWN && ev.key.key == SDLK_ESCAPE && !saveDialogVisible()) {
+    openLoadMenu([&](const std::string& sceneName) {
+      scene_manager.loadSceneFromFolder(sceneName);
+      showSave("Scene loadet: " + sceneName);
+    });
+  }
 
 }
 
@@ -297,6 +309,102 @@ void EditorUI::drawSaveDialog(SDL_State& state) {
   UI::Text::displayText(sceneNameInput + "_", { x + 90.f, y + 60.f });
 
   UI::Text::displayText("{gray}(ENTER = gem, ESC = annullèr)", { x + 20.f, y + 100.f });
+}
+
+void EditorUI::openLoadMenu(const std::function<void(const std::string&)>& onLoad) {
+  onLoadScene = onLoad;
+  selectedSceneIndex = 0;
+  refreshSceneList();
+  showLoadMenu = true;
+}
+
+void EditorUI::refreshSceneList() {
+  availableScenes.clear();
+  std::filesystem::path scenesDir = "scenes";
+
+  if(!std::filesystem::exists(scenesDir)) return;
+
+  for(const auto& entry : std::filesystem::directory_iterator(scenesDir)) {
+    if(entry.is_directory()) {
+      availableScenes.push_back(entry.path().filename().string());
+    }
+  }
+
+  std::sort(availableScenes.begin(), availableScenes.end());
+}
+
+void EditorUI::handleLoadMenuEvent(const SDL_Event& event) {
+  if(event.type == SDL_EVENT_KEY_DOWN) {
+    if(event.key.key == SDLK_ESCAPE) {
+      showLoadMenu = false;
+      return;
+    }
+
+    if(event.key.key == SDLK_UP && selectedSceneIndex > 0) {
+      selectedSceneIndex--;
+    } else if(event.key.key == SDLK_DOWN && selectedSceneIndex < (int) availableScenes.size() - 1) {
+      selectedSceneIndex++;
+    } else if(event.key.key == SDLK_RETURN && !availableScenes.empty()) {
+      if(onLoadScene) {
+        onLoadScene(availableScenes[selectedSceneIndex]);
+      }
+      showLoadMenu = false;
+    }
+  }
+
+  if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
+    float mx, my;
+    SDL_GetMouseState(&mx, &my);
+
+    const float startY = 200.f;
+    const float lineHeight = 30.f;
+    const float startX = 200.f;
+
+    for(size_t i = 0; i < availableScenes.size(); ++i) {
+      float y = startY + i * lineHeight;
+      if(mx >= startX && mx <= startX + 400.f && my >= y && my <= y + lineHeight) {
+        selectedSceneIndex = (int) i;
+        if (onLoadScene) onLoadScene(availableScenes[i]);
+        showLoadMenu = false;
+        break;
+      }
+    }
+  }
+}
+
+void EditorUI::drawLoadMenu(SDL_State& state) {
+  const float w = 500.f;
+  const float h = 400.f;
+  const float x = (state.windowWidth - w) / 2.f;
+  const float y = (state.windowHeight - h) / 2.f;
+
+  SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(state.renderer, 20, 20, 30, 230);
+  SDL_FRect rect { x, y, w, h };
+  SDL_RenderFillRect(state.renderer, &rect);
+  SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
+  SDL_RenderRect(state.renderer, &rect);
+
+  UI::Text::displayText("{green}Load Scene", { x + 20.f, y + 20.f });
+
+  if(availableScenes.empty()) {
+    UI::Text::displayText("{red} Ingen scener fundet i 'scenes/'", { x + 20.f, y + 80.f });
+    return;
+  }
+
+  float listStartY = y + 70.f;
+  const float lineH = 28.f;
+
+  for(size_t i = 0; i < availableScenes.size(); ++i) {
+    std::string text = availableScenes[i];
+    if((int) i == selectedSceneIndex) {
+      text = "{yellow}> " + text + " <";
+    }
+
+    UI::Text::displayText(text, { x + 40.f, listStartY + i * lineH });
+  }
+
+  UI::Text::displayText("{gray}(ENTER = load, ESC = tilbage)", { x + 20.f, y + h - 40.f });
 }
 
 }

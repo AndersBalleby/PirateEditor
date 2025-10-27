@@ -338,7 +338,7 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
   cb.prevLayer        = [&]{ if (showLayers) currentLayer = (currentLayer - 1 + maxLayers) % maxLayers; };
   cb.togglePalette    = [&]{ ui.setPaletteVisible(!ui.paletteVisible()); };
 
-  ui.handleEvent(event, state, m, cb);
+  ui.handleEvent(event, state, scene_manager, m, cb);
 }
 
 

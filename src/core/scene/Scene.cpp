@@ -163,6 +163,59 @@ void Tiles::AutotileRecalcAt(int x, int y) {
   t->setTileIndex(tileIndex);
 }
 
+Tiles::Tiles(Tiles&& other) noexcept
+  : terrainTiles(std::move(other.terrainTiles))
+  , crateTiles(std::move(other.crateTiles))
+  , grassTiles(std::move(other.grassTiles))
+  , playerSetupTiles(std::move(other.playerSetupTiles))
+  , enemyTiles(std::move(other.enemyTiles))
+  , coinsTiles(std::move(other.coinsTiles))
+  , fgPalmsTiles(std::move(other.fgPalmsTiles))
+  , bgPalmsTiles(std::move(other.bgPalmsTiles))
+  , constraintTiles(std::move(other.constraintTiles))
+  , tileLookup(std::move(other.tileLookup))
+{
+  rebuildPointers_();
+}
+
+Tiles& Tiles::operator=(Tiles&& other) noexcept {
+  if (this != &other) {
+    terrainTiles      = std::move(other.terrainTiles);
+    crateTiles        = std::move(other.crateTiles);
+    grassTiles        = std::move(other.grassTiles);
+    playerSetupTiles  = std::move(other.playerSetupTiles);
+    enemyTiles        = std::move(other.enemyTiles);
+    coinsTiles        = std::move(other.coinsTiles);
+    fgPalmsTiles      = std::move(other.fgPalmsTiles);
+    bgPalmsTiles      = std::move(other.bgPalmsTiles);
+    constraintTiles   = std::move(other.constraintTiles);
+    tileLookup        = std::move(other.tileLookup);
+    rebuildPointers_();
+  }
+  return *this;
+}
+
+void Tiles::rebuildPointers_() {
+  // Peg altid på *dette* objekts egne grupper
+  allGroups = {
+    &bgPalmsTiles,
+    &terrainTiles,
+    &grassTiles,
+    &crateTiles,
+    &enemyTiles,
+    &fgPalmsTiles,
+    &coinsTiles,
+    &constraintTiles,
+    &playerSetupTiles
+  };
+
+  layerGroups = {
+    std::vector<TileGroup*>{ &bgPalmsTiles },
+    std::vector<TileGroup*>{ &terrainTiles, &crateTiles, &grassTiles, &enemyTiles },
+    std::vector<TileGroup*>{ &fgPalmsTiles, &coinsTiles, &playerSetupTiles, &constraintTiles }
+  };
+}
+
 void Tiles::AutotileRecalcNeighborsAround(int x, int y) {
   AutotileRecalcAt(x, y);
   AutotileRecalcAt(x, y-1);
@@ -213,6 +266,30 @@ Utils::TileLayer Layout::LoadLevelLayout(unsigned int level, const std::string& 
   }
 
   return result;
+}
+
+Utils::TileLayer Layout::LoadSceneLayout(const std::string &sceneName, const std::string &suffix) {
+  std::filesystem::path p = std::filesystem::path("scenes") / sceneName / (sceneName + "_" + suffix + ".csv");
+  Utils::TileLayer result = Utils::LoadCSVFile(p.string());
+  if(result.empty()) {
+    Log::Error("Kunne ikke indlæse scene fra CSV: {}", p.string());
+    return {};
+  }
+
+  return result;
+}
+
+Layout::Layout(const std::string& sceneName) {
+  bgPalmsLayout     = LoadSceneLayout(sceneName, "bg_palms");
+  coinsLayout       = LoadSceneLayout(sceneName, "coins");
+  constraintsLayout = LoadSceneLayout(sceneName, "constraints");
+  cratesLayout      = LoadSceneLayout(sceneName, "crates");
+  enemiesLayout     = LoadSceneLayout(sceneName, "enemies");
+  fgPalmsLayout     = LoadSceneLayout(sceneName, "fg_palms");
+  grassLayout       = LoadSceneLayout(sceneName, "grass");
+  playerSetupLayout = LoadSceneLayout(sceneName, "player");
+  terrainLayout     = LoadSceneLayout(sceneName, "terrain");
+  constraintLayout  = LoadSceneLayout(sceneName, "constraints");
 }
 
 Tiles::Tiles(const Layout& layout) {
@@ -439,6 +516,37 @@ void Manager::removeLayerTiles(int gridX, int gridY, int layerIndex) {
   if (before) {
     tiles.AutotileRecalcNeighborsAround(gridX, gridY);
   }
+}
+
+static void FreeTileGroup(TileGroup& g) {
+  for(auto* t : g) delete t;
+  g.clear();
+}
+
+static void FreeAllTiles(Tiles& t) {
+  for(auto* group : t.allGroups) {
+    FreeTileGroup(*group);
+  }
+
+  t.tileLookup.clear();
+}
+
+void Manager::loadSceneFromFolder(const std::string& sceneName) {
+  Layout newLayout(sceneName);
+
+  if(newLayout.terrainLayout.empty()) {
+    Log::Error("Scene '{}' kunne ikke indlæses (terrain er tom)", sceneName);
+    return;
+  }
+
+  FreeAllTiles(tiles);
+
+  layout = std::move(newLayout);
+  tiles = Tiles(layout);
+  tiles.AutotileAllTerrain();
+
+  name = sceneName;
+  Log::Info("Scene '{}' indlæst fra 'scenes/{}'", name, sceneName);
 }
 
 Tile* Manager::getTileAt(int gridX, int gridY) {

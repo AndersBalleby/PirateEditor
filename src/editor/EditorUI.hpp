@@ -10,6 +10,7 @@
 #include "tiles/TileManager.hpp"
 #include "sdl/SDL_Handler.hpp"
 #include "logging/Logger.hpp"
+#include "scene/Scene.hpp"
 
 namespace UI {
 struct EditorUIModel {
@@ -38,7 +39,7 @@ public:
 
   void update(SDL_State& state, float dt) noexcept;
   void draw(SDL_State& state, const EditorUIModel& m);
-  void handleEvent(const SDL_Event& ev, SDL_State& state,
+  void handleEvent(const SDL_Event& ev, SDL_State& state, Scene::Manager& scene_manager,
                      const EditorUIModel& m, const EditorUICallbacks& cb);
 
   void showSave(const std::string& msg);
@@ -73,6 +74,16 @@ private:
 
   void drawSaveDialog(SDL_State& state);
   void handleSaveDialogEvent(SDL_Window* window, const SDL_Event& event);
+
+  bool showLoadMenu = false;
+  std::vector<std::string> availableScenes;
+  int selectedSceneIndex = 0;
+  std::function<void(const std::string&)> onLoadScene = nullptr;
+
+  void openLoadMenu(const std::function<void(const std::string&)>& onLoad);
+  void drawLoadMenu(SDL_State& state);
+  void handleLoadMenuEvent(const SDL_Event& event);
+  void refreshSceneList();
 };
 
 }

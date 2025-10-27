@@ -39,8 +39,10 @@ struct Layout {
   Utils::TileLayer constraintLayout;
 
   [[nodiscard]] static Utils::TileLayer LoadLevelLayout(unsigned int level, const std::string& name);
+  [[nodiscard]] static Utils::TileLayer LoadSceneLayout(const std::string& sceneName, const std::string& suffix);
 
   explicit Layout(unsigned int level);
+  explicit Layout(const std::string& sceneName);
 };
 
 struct Tiles {
@@ -66,6 +68,12 @@ struct Tiles {
     &constraintTiles,
     &playerSetupTiles
   };
+
+  Tiles(const Tiles&) = delete;
+  Tiles& operator=(const Tiles&) = delete;
+
+  Tiles(Tiles&& other) noexcept;
+  Tiles& operator=(Tiles&& other) noexcept;
 
   // 0 = background, 1 = terrain, 2 = foreground
   std::array<std::vector<TileGroup*>, 3> layerGroups {
@@ -94,6 +102,8 @@ struct Tiles {
   void RemoveTile(int gridX, int gridY, int layerIndex);
 
   explicit Tiles(const Layout& layout);
+private:
+  void rebuildPointers_();
 };
 
 class Manager {
@@ -113,6 +123,8 @@ class Manager {
     void removeLayerTiles(int gridX, int gridY, int layerIndex);
 
     Tile* getTileAt(int gridX, int gridY);
+
+    void loadSceneFromFolder(const std::string& sceneName);
 
   private:
     // Camera - måske lave dette som en class på et tidspunkt
