@@ -48,19 +48,26 @@ struct TextKeyHash {
 
 class Text {
   public:
-    static bool init(SDL_Renderer* renderer, const std::string& fontPath, float fontSize);
+    enum class FontType {
+      Small,
+      Medium,
+      Large,
+      Title
+    };
+
+    static bool init(SDL_Renderer* renderer, const std::string& fontPath, const std::unordered_map<FontType, int>& fontSizes);
     static void cleanup();
 
-    static void displayText(const std::string& text, Vec2<float> position, SDL_Color color = {255, 255, 255, 255});
+    static void displayText(const std::string& text, Vec2<float> position, FontType type = FontType::Medium, SDL_Color color = {255,255,255,255});
     static void trimUnusedCache(double maxAgeSeconds = 5.0);
-    static TTF_Font* getFont() { return s_font; }
+    static TTF_Font* getFont(FontType type) { return s_fonts[type]; }
   private:
     Text() = default;
 
     static std::vector<ColoredSegment> parseColoredText(const std::string& input, SDL_Color defaultColor = {128, 128, 128, 255});
 
     static SDL_Renderer* s_renderer;
-    static TTF_Font* s_font;
+    static std::unordered_map<FontType, TTF_Font*> s_fonts;
 
     static std::unordered_map<TextKey, CachedText, TextKeyHash> s_cache;
     static std::unordered_map<std::string, SDL_Color> s_colorMap;

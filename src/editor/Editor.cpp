@@ -307,7 +307,7 @@ void Editor::handleInput(SDL_Event& event, SDL_State& state) {
     if (event.key.repeat == 0) {
       ui.openSaveDialog(state.window, scene_manager.getName(), [&](const std::string& name){
         scene_manager.saveScene(name);
-        ui.showSave("Scene gemt som: " + name);
+        ui.showSave("Scene Saved As: " + name);
       });
     }
   }

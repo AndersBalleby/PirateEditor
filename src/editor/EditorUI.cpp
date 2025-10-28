@@ -244,7 +244,7 @@ void EditorUI::drawTilePalette(SDL_State& state, const EditorUIModel& m) {
 
 void EditorUI::drawSavePopup(SDL_State& state) {
   int textW = 0, textH = 0;
-  TTF_GetTextSize(TTF_CreateText(nullptr, UI::Text::getFont(), savePopupText.c_str(), savePopupText.length()), &textW, &textH);
+  TTF_GetTextSize(TTF_CreateText(nullptr, UI::Text::getFont(Text::FontType::Medium), savePopupText.c_str(), savePopupText.length()), &textW, &textH);
 
   const float paddingX = 40.f;
   const float paddingY = 20.f;
@@ -318,7 +318,7 @@ void EditorUI::drawSaveDialog(SDL_State& state) {
   SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
   SDL_RenderRect(state.renderer, &rect);
 
-  UI::Text::displayText("{green}Save Scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("{green}Save Scene", { x + 20.f, y + 20.f }, UI::Text::FontType::Large);
   UI::Text::displayText("Name:", { x + 20.f, y + 60.f });
   UI::Text::displayText(sceneNameInput + "_", { x + 90.f, y + 60.f });
 
@@ -440,7 +440,7 @@ void EditorUI::drawLoadMenu(SDL_State& state) {
   SDL_SetRenderDrawColor(state.renderer, 255, 255, 255, 180);
   SDL_RenderRect(state.renderer, &rect);
 
-  UI::Text::displayText("{green}Load Scene", { x + 20.f, y + 20.f });
+  UI::Text::displayText("{green}Choose Scene", { x + 30.f, y + 20.f }, UI::Text::FontType::Title);
 
   float listX = x + 20.f;
   float listY = y + 70.f;

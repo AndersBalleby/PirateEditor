@@ -32,7 +32,12 @@ SDL_Handler::SDL_Handler(WindowConfig winConfig) {
     return;
   }
 
-  if(!UI::Text::init(state.renderer, "resources/ui/ARCADEPI.TTF", 20)) {
+  if(!UI::Text::init(state.renderer, "resources/ui/ARCADEPI.TTF", {
+  { UI::Text::FontType::Small, 16},
+  { UI::Text::FontType::Medium, 20},
+  { UI::Text::FontType::Large, 28},
+  { UI::Text::FontType::Title, 36},
+  })) {
     Log::Critical("Fejl ved indlæsning af font");
     return;
   }
