@@ -28,7 +28,7 @@ Editoren gør det nemt at skabe og redigere baner – med et hurtigt og responsi
 | **Vælg tiles (multi-select)** | `Ctrl + Venstreklik` |
 | **Placér tile** | `Venstreklik` |
 | **Slet tile** | `Højreklik` / `Delete` / `Backspace` |
-| **Åbn “Load Scene” menu** | `Esc` |
+| **Åbn “Load Scene” menu** | `Escape` |
 | **Ny scene (fra Load Menu)** | `N` |
 | **Bekræft (fx i dialoger)** | `Enter` |
 | **Fortryd / luk dialog** | `Escape` |
