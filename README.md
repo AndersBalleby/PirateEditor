@@ -1,5 +1,4 @@
 # 🏴‍☠️ Pirate Level Editor
-[![Se video-showcase](https://img.youtube.com/vi/5lzz7FF_RwY/0.jpg)](https://www.youtube.com/watch?v=5lzz7FF_RwY)
 
 En **level editor** til mit [PiratePlatformer](https://github.com/AndersBalleby/PiratePlatformer) spil, bygget helt fra bunden i **C++** og **SDL3**.
 Editoren gør det nemt at skabe og redigere baner – med et hurtigt og responsivt interface designet til at integrere direkte med spillets engine.
