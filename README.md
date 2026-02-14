@@ -1,21 +1,21 @@
-# 🏴‍☠️ Pirate Level Editor
+# Pirate Level Editor
 
-En **level editor** til mit [PiratePlatformer](https://github.com/AndersBalleby/PiratePlatformer) spil, bygget helt fra bunden i **C++** og **SDL3**.
-Editoren gør det nemt at skabe og redigere baner – med et hurtigt og responsivt interface designet til at integrere direkte med spillets engine.
-
----
-
-## ✨ Features
-- 🧱 **Tile-baseret level editing** med live preview
-- 🗺️ **Scene- og baggrundsstyring** (multi-layer support)
-- 🎵 **Audio-understøttelse** via SDL_mixer (musik & lydeffekter)
-- 🎨 **Farvetekst og UI-rendering** via et custom tekstsystem (`TextHandler`)
-- ⚙️ **Resource management** til teksturer, lyd og assets
-- 📊 **Indbygget FPS-counter og logging-system**
+En **level editor** til mit [PiratePlatformer](https://github.com/AndersBalleby/PiratePlatformer) spil, bygget med **C++** og **SDL3**.
+Editoren gør det nemt at skabe og redigere baner med et responsive interface der integrerer direkte i spillets engine.
 
 ---
 
-## 🎹 Keybinds
+## Features
+- **Tile-baseret level editing** med live preview
+- **Scene- og baggrundsstyring** (multi-layer support)
+- **Audio-support** via SDL_mixer (musik & lydeffekter)
+- **Farvetekst og UI-rendering** via et custom tekstsystem (`TextHandler`)
+- **Resource management** til teksturer, lyd og assets
+- **Indbygget FPS-counter og logging-system**
+
+---
+
+## Keybinds
 | Handling | Tast |
 |-----------|------|
 | **Skift Edit Mode ON / OFF** | `Space` |
@@ -64,7 +64,7 @@ make -j
 ```
 
 
-### 🗂️ Projektstruktur
+### Projektstruktur
 ```bash
 ./src
 ├── core
@@ -112,10 +112,10 @@ make -j
 └── main.cpp
 ```
 
-## Fremtidige planer
-Her er mine mulige planer for udvikling af projektet i fremtiden:
-- 🔲 **Undo/Redo-system**
-- 🚀 **Spil spillet fra editor**
-- 🧮 **Grid snapping & tile collision tools**
-- 🎨 **GUI-forbedringer** (knapper, ikoner, drag-and-drop)
-- 🧠 **Script-baserede entities**
+## Manglende Features
+I fremtiden kunne følgende features blive implementeret:
+- **Undo/Redo-system**
+- **Spil spillet fra editor**
+- **Grid snapping & tile collision tools**
+- **GUI-forbedringer** (knapper, ikoner, drag-and-drop)
+- **Script-baserede entities**
